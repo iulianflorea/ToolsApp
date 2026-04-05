@@ -1,0 +1,108 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="welcome-block">
+      <h1>Dashboard</h1>
+      <span class="welcome-sub" *ngIf="user()">Welcome back, {{ user()!.fullName }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading(); else content" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <ng-template #content>
+    <div class="stats-grid" *ngIf="stats()">
+      <div class="stat-card primary">
+        <div class="stat-icon"><mat-icon>inventory_2</mat-icon></div>
+        <span class="stat-label">Total Assets</span>
+        <span class="stat-value">{{ stats()!.totalAssets }}</span>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-icon"><mat-icon>check_circle_outline</mat-icon></div>
+        <span class="stat-label">Available</span>
+        <span class="stat-value">{{ stats()!.availableAssets }}</span>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-icon"><mat-icon>swap_horiz</mat-icon></div>
+        <span class="stat-label">In Use</span>
+        <span class="stat-value">{{ stats()!.inUseAssets }}</span>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon"><mat-icon>build_circle</mat-icon></div>
+        <span class="stat-label">In Maintenance</span>
+        <span class="stat-value">{{ stats()!.inMaintenanceAssets }}</span>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-icon"><mat-icon>schedule</mat-icon></div>
+        <span class="stat-label">Overdue Returns</span>
+        <span class="stat-value">{{ stats()!.overdueTransfers }}</span>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-icon"><mat-icon>pending_actions</mat-icon></div>
+        <span class="stat-label">Pending Maintenance</span>
+        <span class="stat-value">{{ stats()!.pendingMaintenance }}</span>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <mat-card class="widget">
+        <mat-card-header>
+          <div class="widget-title">
+            <div class="widget-icon alerts-icon">
+              <mat-icon>notifications</mat-icon>
+            </div>
+            <span>Recent Alerts</span>
+          </div>
+          <a mat-button color="primary" routerLink="/alerts" class="view-all-btn">View All</a>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list *ngIf="recentAlerts().length > 0; else noAlerts">
+            <mat-list-item *ngFor="let alert of recentAlerts()" class="alert-row">
+              <mat-icon matListItemIcon [class.warn-icon]="alert.type === 'OVERDUE_RETURN'">
+                {{ alert.type === 'MAINTENANCE_DUE' ? 'build' : 'warning_amber' }}
+              </mat-icon>
+              <span matListItemTitle>{{ alert.message }}</span>
+              <span matListItemLine>{{ alert.createdAt | date: 'short' }}</span>
+            </mat-list-item>
+          </mat-list>
+          <ng-template #noAlerts>
+            <div class="empty-state">
+              <mat-icon>notifications_none</mat-icon>
+              <span>No unread alerts</span>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="widget">
+        <mat-card-header>
+          <div class="widget-title">
+            <div class="widget-icon transfers-icon">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <span>Active Transfers</span>
+          </div>
+          <a mat-button color="primary" routerLink="/transfers" class="view-all-btn">View All</a>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list *ngIf="recentTransfers().length > 0; else noTransfers">
+            <mat-list-item *ngFor="let t of recentTransfers()" class="transfer-row">
+              <mat-icon matListItemIcon>construction</mat-icon>
+              <span matListItemTitle>{{ t.assetName }}</span>
+              <span matListItemLine>
+                {{ t.assignedToUserName || 'Unassigned' }}
+                <ng-container *ngIf="t.toLocationName"> · {{ t.toLocationName }}</ng-container>
+              </span>
+            </mat-list-item>
+          </mat-list>
+          <ng-template #noTransfers>
+            <div class="empty-state">
+              <mat-icon>swap_horiz</mat-icon>
+              <span>No active transfers</span>
+            </div>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </ng-template>
+</div>

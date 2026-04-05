@@ -1,0 +1,49 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>
+      Alerts
+      <span *ngIf="unreadCount() > 0" class="unread-badge">{{ unreadCount() }}</span>
+    </h1>
+    <button mat-stroked-button (click)="markAllRead()" *ngIf="unreadCount() > 0">
+      <mat-icon>done_all</mat-icon> Mark All Read
+    </button>
+  </div>
+
+  <mat-card>
+    <mat-list *ngIf="alerts().length > 0; else noAlerts">
+      <mat-list-item
+        *ngFor="let alert of alerts()"
+        [ngClass]="{ unread: !alert.isRead }"
+        class="alert-item"
+      >
+        <mat-icon matListItemIcon [class.warn-icon]="alert.type === 'OVERDUE_RETURN'">
+          {{ alertIcon(alert.type) }}
+        </mat-icon>
+        <span matListItemTitle>{{ alert.message }}</span>
+        <span matListItemLine>
+          {{ alert.assetName ? ('Asset: ' + alert.assetName + ' · ') : '' }}
+          {{ alert.createdAt | date: 'medium' }}
+        </span>
+        <button
+          matListItemMeta
+          mat-icon-button
+          *ngIf="!alert.isRead"
+          (click)="markRead(alert.id)"
+          matTooltip="Mark as read"
+        >
+          <mat-icon>check</mat-icon>
+        </button>
+      </mat-list-item>
+    </mat-list>
+
+    <ng-template #noAlerts>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <mat-icon>notifications_none</mat-icon>
+        </div>
+        <p class="empty-title">All clear</p>
+        <p class="empty-sub">No alerts to show</p>
+      </div>
+    </ng-template>
+  </mat-card>
+</div>

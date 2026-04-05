@@ -1,0 +1,220 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  MOBILE.SCSS — Apple-style responsive layout & mobile card lists
+// ─────────────────────────────────────────────────────────────────────────────
+
+$bp-mobile: 768px;
+$bp-small:  480px;
+
+// ─── Bottom Navigation Bar ────────────────────────────────────────────────────
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  height: 56px;
+  background: var(--bottom-nav-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+  grid-template-columns: repeat(5, 1fr);
+  align-items: stretch;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--nav-icon);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 6px 4px;
+  transition: color .15s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  mat-icon { font-size: 22px; width: 22px; height: 22px; transition: transform .15s ease, color .15s ease; }
+
+  &.active { color: var(--blue); mat-icon { color: var(--blue); transform: scale(1.08); } }
+  &:active mat-icon { transform: scale(.88); }
+}
+
+// ─── Mobile Card List (replaces mat-table on mobile) ─────────────────────────
+// These classes are used in every component's mobile template
+.m-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.m-card {
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  transition: background .2s ease;
+}
+
+.m-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 46px;
+  gap: 8px;
+
+  &:last-of-type { border-bottom: none; }
+}
+
+.m-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  min-width: 84px;
+}
+
+.m-val {
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: right;
+  word-break: break-word;
+  flex: 1;
+}
+
+.m-val-bold {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+}
+
+.m-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--bg-inset);
+  border-top: 1px solid var(--border-subtle);
+  gap: 2px;
+}
+
+// ─── Mobile breakpoint ────────────────────────────────────────────────────────
+@media (max-width: #{$bp-mobile}) {
+
+  // ── Show bottom nav ────────────────────────────────────────────────────────
+  .bottom-nav { display: grid !important; }
+
+  // ── Content clears bottom nav ──────────────────────────────────────────────
+  .content-area { padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important; }
+
+  // ── Toolbar ────────────────────────────────────────────────────────────────
+  .toolbar { height: 52px !important; min-height: 52px !important; padding: 0 6px !important; }
+
+  // ── Page Layout ────────────────────────────────────────────────────────────
+  .page-container  { padding: 16px 12px !important; }
+  .page-header     { flex-wrap: wrap; gap: 12px; }
+  .page-header h1  { font-size: 22px !important; }
+
+  // ── Card wrapper: no padding when wrapping a list ──────────────────────────
+  .card {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  // Filter bar inside card — stacked vertically on mobile
+  .filter-bar {
+    padding: 12px 14px 8px !important;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    gap: 0 !important;
+
+    mat-form-field {
+      width: 100% !important;
+      min-width: unset !important;
+      flex-shrink: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    // Scan / icon buttons stay on same row as last field
+    button.mat-mdc-icon-button {
+      align-self: center;
+      margin-left: auto;
+    }
+  }
+
+  // ── Stats Grid ─────────────────────────────────────────────────────────────
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; margin-bottom: 20px !important; }
+  .stat-card  {
+    padding: 14px !important;
+    .stat-value { font-size: 26px !important; letter-spacing: -.5px !important; }
+    .stat-icon  { width: 30px !important; height: 30px !important; margin-bottom: 4px !important;
+                  mat-icon { font-size: 16px !important; width: 16px !important; height: 16px !important; } }
+  }
+
+  // ── Dashboard ──────────────────────────────────────────────────────────────
+  .dashboard-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+
+  // ── Detail ─────────────────────────────────────────────────────────────────
+  .detail-grid  { grid-template-columns: 1fr !important; }
+  .tab-table-area { padding: 12px 0 !important; }
+
+  // ── Forms ──────────────────────────────────────────────────────────────────
+  .form-grid  { grid-template-columns: 1fr !important; }
+  .form-row   { flex-direction: column !important;
+                mat-form-field { width: 100% !important; min-width: unset !important; } }
+  .form-actions { flex-direction: column-reverse !important; button, a { width: 100% !important; } }
+
+  // ── Touch targets ──────────────────────────────────────────────────────────
+  .mat-mdc-icon-button { width: 44px !important; height: 44px !important; }
+  .nav-item            { min-height: 48px !important; }
+
+  // ── Empty state ────────────────────────────────────────────────────────────
+  .empty-state { padding: 36px 16px !important; }
+
+  // ── Scanner ────────────────────────────────────────────────────────────────
+  .scanner-panel { max-width: 100% !important; margin: 0 !important; }
+
+  // ── Alert items ────────────────────────────────────────────────────────────
+  .alert-item { min-height: 64px !important; }
+
+  // ── Mobile card list (inside .card) ───────────────────────────────────────
+  .m-list    { padding: 8px !important; }
+  .m-card    { margin-bottom: 8px !important; }
+}
+
+// ─── Small phones ─────────────────────────────────────────────────────────────
+@media (max-width: #{$bp-small}) {
+  .page-container { padding: 12px 10px !important; }
+  .stats-grid     { gap: 8px !important; }
+  .stat-card      { padding: 12px !important; }
+
+  .login-bg   { align-items: flex-start !important; padding-top: 24px !important; }
+  .login-card {
+    width: calc(100% - 24px) !important;
+    margin: 0 12px !important;
+    border-radius: 16px !important;
+    padding: 28px 20px 22px !important;
+  }
+
+  .m-label { min-width: 72px !important; font-size: 10px !important; }
+}
+
+// ─── Desktop scrollbar ────────────────────────────────────────────────────────
+@media (min-width: #{$bp-mobile}) {
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,.15);
+    border-radius: 3px;
+    html.dark & { background: rgba(255,255,255,.15); }
+  }
+}

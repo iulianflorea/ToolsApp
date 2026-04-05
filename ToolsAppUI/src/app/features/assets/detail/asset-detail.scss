@@ -1,0 +1,90 @@
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  padding: 16px 0;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-list {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 10px 16px;
+  align-items: baseline;
+
+  dt {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6E6E73;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  dd {
+    font-size: 14px;
+    color: #1D1D1F;
+  }
+}
+
+.qr-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px;
+}
+
+.qr-code-text {
+  font-size: 10px;
+  word-break: break-all;
+  color: #6E6E73;
+  background: #F5F5F7;
+  padding: 6px 10px;
+  border-radius: 6px;
+  max-width: 200px;
+  text-align: center;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.tab-table-area {
+  padding: 16px 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px;
+  color: #AEAEB2;
+}
+
+.warranty-expired  { color: #AE1A1A; font-weight: 600; }
+.warranty-active   { color: #147A32; font-weight: 600; }
+
+.warranty-expired-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #FFE5E5;
+  color: #AE1A1A;
+}
+
+.warranty-active-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #D4F6DC;
+  color: #147A32;
+}

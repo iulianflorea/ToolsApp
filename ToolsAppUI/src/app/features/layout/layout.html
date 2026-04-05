@@ -1,0 +1,107 @@
+<mat-drawer-container class="drawer-container">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+  <mat-drawer
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="drawerOpened()"
+    (closed)="drawerOpened.set(false)"
+    class="sidenav"
+  >
+    <div class="sidenav-header">
+      <div class="app-logo-icon">🔧</div>
+      <span class="app-name">ToolTrack</span>
+    </div>
+
+    <div class="sidenav-user" *ngIf="user()">
+      <div class="user-avatar">{{ user()!.fullName[0] | uppercase }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ user()!.fullName }}</div>
+        <div class="user-role">{{ user()!.role }}</div>
+      </div>
+    </div>
+
+    <mat-nav-list class="nav-list">
+      @for (item of visibleNavItems(); track item.path) {
+        <a
+          mat-list-item
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          class="nav-item"
+          (click)="isMobile() && drawerOpened.set(false)"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <button mat-button class="logout-btn" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Sign Out
+      </button>
+    </div>
+  </mat-drawer>
+
+  <!-- ── Main Content ──────────────────────────────────────────────── -->
+  <mat-drawer-content>
+
+    <!-- Toolbar -->
+    <mat-toolbar class="toolbar">
+      <!-- Hamburger: mobile only -->
+      <button
+        *ngIf="isMobile()"
+        mat-icon-button
+        (click)="toggleDrawer()"
+        matTooltip="Menu"
+        class="hamburger-btn"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- App title: mobile only -->
+      <span *ngIf="isMobile()" class="toolbar-title">ToolTrack</span>
+
+      <span class="toolbar-spacer"></span>
+
+      <!-- Dark mode toggle -->
+      <button
+        mat-icon-button
+        (click)="theme.toggle()"
+        [matTooltip]="theme.isDark() ? 'Light mode' : 'Dark mode'"
+      >
+        <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <!-- Alerts: desktop only -->
+      <button
+        *ngIf="!isMobile()"
+        mat-icon-button
+        [routerLink]="'/alerts'"
+        matTooltip="Alerts"
+      >
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <!-- Page content -->
+    <div class="content-area">
+      <router-outlet />
+    </div>
+
+    <!-- ── Bottom Navigation (mobile) ──────────────────────────────── -->
+    <nav class="bottom-nav" *ngIf="isMobile()">
+      @for (item of bottomNavItems; track item.path) {
+        <a
+          class="bottom-nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+  </mat-drawer-content>
+</mat-drawer-container>

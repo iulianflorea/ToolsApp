@@ -1,0 +1,54 @@
+.drawer-container {
+  height: 100vh;
+}
+
+.content-area {
+  min-height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+
+// ── Hamburger button ──────────────────────────────────────────────────────────
+.hamburger-btn {
+  margin-right: 4px;
+}
+
+// ── Toolbar title (mobile) ────────────────────────────────────────────────────
+.toolbar-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+// ── Sidebar footer ────────────────────────────────────────────────────────────
+.sidenav-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 8px;
+  border-top: 1px solid var(--border);
+
+  .logout-btn {
+    color: var(--text-secondary) !important;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+    border-radius: 9px !important;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .12s ease, color .12s ease;
+
+    mat-icon {
+      color: var(--nav-icon);
+      transition: color .12s ease;
+    }
+
+    &:hover {
+      color: var(--red) !important;
+      background: var(--red-dim) !important;
+
+      mat-icon { color: var(--red); }
+    }
+  }
+}

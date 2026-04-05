@@ -1,0 +1,98 @@
+.login-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F5F5F7;
+}
+
+.login-card {
+  width: 400px;
+  background: #FFFFFF;
+  border-radius: 18px;
+  padding: 40px 40px 32px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 1px rgba(0, 0, 0, 0.06),
+    0 16px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 28px;
+
+  .login-logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(145deg, #007AFF, #5AC8FA);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1D1D1F;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #6E6E73;
+    font-weight: 400;
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.login-btn {
+  height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 8px;
+  border-radius: 10px !important;
+  letter-spacing: -0.1px;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #AE1A1A;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  background: #FFE5E5;
+  border-radius: 8px;
+  margin-bottom: 4px;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.demo-hint {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+  span {
+    font-size: 12px;
+    color: #6E6E73;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  }
+}

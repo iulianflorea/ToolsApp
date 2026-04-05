@@ -1,0 +1,124 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Assets</h1>
+    <a mat-raised-button color="primary" routerLink="/assets/new">
+      <mat-icon>add</mat-icon> Add Asset
+    </a>
+  </div>
+
+  <div class="card">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput [formControl]="searchCtrl" placeholder="Name or serial…" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [formControl]="statusCtrl">
+          <mat-option value="">All</mat-option>
+          @for (s of statuses; track s) { <mat-option [value]="s">{{ statusLabel(s) }}</mat-option> }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select [formControl]="categoryCtrl">
+          <mat-option value="">All</mat-option>
+          @for (c of categories; track c) { <mat-option [value]="c">{{ c }}</mat-option> }
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button color="primary" matTooltip="Scan QR / barcode" (click)="toggleScanner()">
+        <mat-icon>{{ scanning() ? 'close' : 'qr_code_scanner' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Scanner -->
+    <div *ngIf="scanning()" class="scanner-panel">
+      <zxing-scanner [enable]="scanning()" (scanSuccess)="onScanSuccess($event)" (scanError)="onScanError($event)"></zxing-scanner>
+      <p class="scanner-hint">Point the camera at a barcode or QR code</p>
+    </div>
+    <p *ngIf="scanError()" class="scan-error">{{ scanError() }}</p>
+
+    <!-- Loading -->
+    <div *ngIf="loading()" style="text-align:center;padding:32px 16px">
+      <mat-spinner diameter="40" style="margin:0 auto"></mat-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading()">
+
+      <!-- ── DESKTOP: table ───────────────────────────────────────────── -->
+      <ng-container *ngIf="!screen.isMobile()">
+        <table mat-table [dataSource]="assets()">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let a"><a [routerLink]="['/assets', a.id]" class="asset-link">{{ a.name }}</a></td>
+          </ng-container>
+          <ng-container matColumnDef="serialNumber">
+            <th mat-header-cell *matHeaderCellDef>Serial #</th>
+            <td mat-cell *matCellDef="let a">{{ a.serialNumber || '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <td mat-cell *matCellDef="let a">{{ a.category || '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let a">
+              <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="qrCode">
+            <th mat-header-cell *matHeaderCellDef>QR Code</th>
+            <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}…</code></td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let a" class="mat-column-actions">
+              <div class="action-buttons">
+                <a mat-icon-button [routerLink]="['/assets', a.id]" matTooltip="View"><mat-icon>visibility</mat-icon></a>
+                <a mat-icon-button [routerLink]="['/assets', a.id, 'edit']" matTooltip="Edit"><mat-icon>edit</mat-icon></a>
+                <button mat-icon-button color="warn" (click)="delete(a.id)" matTooltip="Delete"><mat-icon>delete</mat-icon></button>
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </ng-container>
+
+      <!-- ── MOBILE: card list ────────────────────────────────────────── -->
+      <ng-container *ngIf="screen.isMobile()">
+        <div class="m-list">
+          @for (a of assets(); track a.id) {
+            <div class="m-card">
+              <div class="m-row">
+                <span class="m-label">Name</span>
+                <a [routerLink]="['/assets', a.id]" class="asset-link m-val">{{ a.name }}</a>
+              </div>
+              <div class="m-row">
+                <span class="m-label">Category</span>
+                <span class="m-val">{{ a.category || '—' }}</span>
+              </div>
+              <div class="m-row">
+                <span class="m-label">Serial #</span>
+                <span class="m-val">{{ a.serialNumber || '—' }}</span>
+              </div>
+              <div class="m-row">
+                <span class="m-label">Status</span>
+                <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+              </div>
+              <div class="m-actions">
+                <a mat-icon-button [routerLink]="['/assets', a.id]" matTooltip="View"><mat-icon>visibility</mat-icon></a>
+                <a mat-icon-button [routerLink]="['/assets', a.id, 'edit']" matTooltip="Edit"><mat-icon>edit</mat-icon></a>
+                <button mat-icon-button color="warn" (click)="delete(a.id)" matTooltip="Delete"><mat-icon>delete</mat-icon></button>
+              </div>
+            </div>
+          }
+        </div>
+      </ng-container>
+
+      <p *ngIf="assets().length === 0" class="empty-state">No assets found.</p>
+    </ng-container>
+  </div>
+</div>

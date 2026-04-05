@@ -1,0 +1,153 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Transfers</h1>
+    <button mat-raised-button color="primary" (click)="showForm.set(true)"><mat-icon>add</mat-icon> Assign Tool</button>
+  </div>
+
+  <mat-card *ngIf="showForm()" class="form-card">
+    <mat-card-header><mat-card-title>Assign Tool to User / Location</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Asset *</mat-label>
+            <input matInput [formControl]="assetSearch" [matAutocomplete]="autoAsset" placeholder="Caută după nume sau serie..." />
+            <mat-icon matSuffix>search</mat-icon>
+            <mat-autocomplete #autoAsset="matAutocomplete" (optionSelected)="onAssetSelected($event)">
+              @for (a of filteredAssets(); track a.id) {
+                <mat-option [value]="a"><span>{{ a.name }}</span>@if (a.serialNumber){<span class="option-meta">{{ a.serialNumber }}</span>}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Assign To (User)</mat-label>
+            <input matInput [formControl]="userSearch" [matAutocomplete]="autoUser" placeholder="Caută utilizator..." />
+            <mat-icon matSuffix>person_search</mat-icon>
+            <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="onUserSelected($event)">
+              @for (u of filteredUsers(); track u.id) {
+                <mat-option [value]="u"><span>{{ u.fullName }}</span><span class="option-meta">{{ u.role }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>From Location</mat-label>
+            <input matInput [formControl]="fromLocSearch" [matAutocomplete]="autoFrom" placeholder="Caută locație..." />
+            <mat-autocomplete #autoFrom="matAutocomplete" (optionSelected)="onFromLocSelected($event)">
+              @for (l of filteredFromLocs(); track l.id) { <mat-option [value]="l">{{ l.name }}</mat-option> }
+            </mat-autocomplete>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>To Location</mat-label>
+            <input matInput [formControl]="toLocSearch" [matAutocomplete]="autoTo" placeholder="Caută locație..." />
+            <mat-autocomplete #autoTo="matAutocomplete" (optionSelected)="onToLocSelected($event)">
+              @for (l of filteredToLocs(); track l.id) { <mat-option [value]="l">{{ l.name }}</mat-option> }
+            </mat-autocomplete>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Expected Return Date</mat-label>
+            <input matInput [matDatepicker]="returnPicker" formControlName="returnDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="returnPicker"></mat-datepicker-toggle>
+            <mat-datepicker #returnPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Notes</mat-label>
+            <input matInput formControlName="notes" />
+          </mat-form-field>
+        </div>
+        <div class="form-actions">
+          <button mat-button type="button" (click)="resetForm()">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Assign</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="card">
+    <div class="filter-bar">
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select (selectionChange)="filterByStatus($event.value)">
+          <mat-option value="">All</mat-option>
+          @for (s of statuses; track s) { <mat-option [value]="s">{{ s }}</mat-option> }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- ── DESKTOP: table ─────────────────────────────────────────────── -->
+    <ng-container *ngIf="!screen.isMobile()">
+      <table mat-table [dataSource]="transfers()">
+        <ng-container matColumnDef="asset">
+          <th mat-header-cell *matHeaderCellDef>Asset</th>
+          <td mat-cell *matCellDef="let t"><strong>{{ t.assetName }}</strong><span *ngIf="t.assetSerialNumber" class="serial-chip">{{ t.assetSerialNumber }}</span></td>
+        </ng-container>
+        <ng-container matColumnDef="assignedTo">
+          <th mat-header-cell *matHeaderCellDef>Assigned To</th>
+          <td mat-cell *matCellDef="let t">{{ t.assignedToUserName || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="location">
+          <th mat-header-cell *matHeaderCellDef>Location</th>
+          <td mat-cell *matCellDef="let t">{{ t.toLocationName || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="transferDate">
+          <th mat-header-cell *matHeaderCellDef>Transfer Date</th>
+          <td mat-cell *matCellDef="let t">{{ t.transferDate | date:'short' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="returnDate">
+          <th mat-header-cell *matHeaderCellDef>Return Due</th>
+          <td mat-cell *matCellDef="let t">{{ t.returnDate ? (t.returnDate | date:'short') : '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let t"><span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span></td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let t" class="mat-column-actions">
+            <button mat-icon-button color="primary" *ngIf="t.status === 'ACTIVE'" (click)="returnAsset(t.id)" matTooltip="Mark Returned">
+              <mat-icon>assignment_return</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </ng-container>
+
+    <!-- ── MOBILE: card list ──────────────────────────────────────────── -->
+    <ng-container *ngIf="screen.isMobile()">
+      <div class="m-list">
+        @for (t of transfers(); track t.id) {
+          <div class="m-card">
+            <div class="m-row">
+              <span class="m-label">Asset</span>
+              <span class="m-val-bold">{{ t.assetName }}<ng-container *ngIf="t.assetSerialNumber"> &middot; {{ t.assetSerialNumber }}</ng-container></span>
+            </div>
+            <div class="m-row">
+              <span class="m-label">Assigned To</span>
+              <span class="m-val">{{ t.assignedToUserName || '—' }}</span>
+            </div>
+            <div class="m-row">
+              <span class="m-label">Location</span>
+              <span class="m-val">{{ t.toLocationName || '—' }}</span>
+            </div>
+            <div class="m-row">
+              <span class="m-label">Return Due</span>
+              <span class="m-val">{{ t.returnDate ? (t.returnDate | date:'shortDate') : '—' }}</span>
+            </div>
+            <div class="m-row">
+              <span class="m-label">Status</span>
+              <span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span>
+            </div>
+            <div class="m-actions" *ngIf="t.status === 'ACTIVE'">
+              <button mat-stroked-button color="primary" (click)="returnAsset(t.id)">
+                <mat-icon>assignment_return</mat-icon> Mark Returned
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </ng-container>
+
+    <p *ngIf="transfers().length === 0" class="empty-state">No transfers found.</p>
+  </div>
+</div>

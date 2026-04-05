@@ -1,0 +1,129 @@
+<div class="page-container" *ngIf="asset()">
+  <div class="page-header">
+    <div>
+      <a mat-icon-button routerLink="/assets"><mat-icon>arrow_back</mat-icon></a>
+      <h1 style="display:inline;margin-left:8px">{{ asset()!.name }}</h1>
+    </div>
+    <a mat-raised-button color="primary" [routerLink]="['/assets', asset()!.id, 'edit']">
+      <mat-icon>edit</mat-icon> Edit
+    </a>
+  </div>
+
+  <mat-tab-group>
+
+    <!-- ── Details ── -->
+    <mat-tab label="Details">
+      <div class="detail-grid">
+        <mat-card class="detail-card">
+          <mat-card-header><mat-card-title>Asset Information</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <dl class="info-list">
+              <dt>Serial Number</dt><dd>{{ asset()!.serialNumber || '—' }}</dd>
+              <dt>Category</dt>    <dd>{{ asset()!.category || '—' }}</dd>
+              <dt>Status</dt>
+              <dd><span class="status-badge" [ngClass]="asset()!.status.toLowerCase()">{{ statusLabel(asset()!.status) }}</span></dd>
+              <dt>Purchase Date</dt>  <dd>{{ asset()!.purchaseDate ? (asset()!.purchaseDate | date) : '—' }}</dd>
+              <dt>Purchase Price</dt> <dd>{{ asset()!.purchasePrice ? (asset()!.purchasePrice | currency:'RON':'symbol':'1.2-2') : '—' }}</dd>
+              <dt>Warranty</dt>
+              <dd>
+                <ng-container *ngIf="asset()!.warrantyMonths; else noWarranty">
+                  {{ asset()!.warrantyMonths }} luni
+                  <ng-container *ngIf="asset()!.warrantyExpiresAt">
+                    · expiră <strong [class.warranty-expired]="isWarrantyExpired(asset()!.warrantyExpiresAt!)" [class.warranty-active]="!isWarrantyExpired(asset()!.warrantyExpiresAt!)">{{ asset()!.warrantyExpiresAt | date:'dd MMM yyyy' }}</strong>
+                    <span *ngIf="isWarrantyExpired(asset()!.warrantyExpiresAt!)" class="warranty-expired-badge">Expirată</span>
+                    <span *ngIf="!isWarrantyExpired(asset()!.warrantyExpiresAt!)" class="warranty-active-badge">Activă</span>
+                  </ng-container>
+                  <ng-container *ngIf="!asset()!.warrantyExpiresAt">(fără dată achiziție)</ng-container>
+                </ng-container>
+                <ng-template #noWarranty>—</ng-template>
+              </dd>
+              <dt>Notes</dt>   <dd>{{ asset()!.notes || '—' }}</dd>
+              <dt>Created</dt> <dd>{{ asset()!.createdAt | date:'medium' }}</dd>
+            </dl>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="qr-card">
+          <mat-card-header><mat-card-title>QR Code</mat-card-title></mat-card-header>
+          <mat-card-content class="qr-content">
+            <canvas #qrCanvas></canvas>
+            <code class="qr-code-text">{{ asset()!.qrCode }}</code>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- ── Transfer History ── -->
+    <mat-tab label="Transfers ({{ transfers().length }})">
+      <div class="tab-table-area">
+
+        <!-- Desktop table -->
+        <ng-container *ngIf="!screen.isMobile()">
+          <table mat-table [dataSource]="transfers()">
+            <ng-container matColumnDef="transferDate"><th mat-header-cell *matHeaderCellDef>Date</th><td mat-cell *matCellDef="let t">{{ t.transferDate | date:'short' }}</td></ng-container>
+            <ng-container matColumnDef="assignedToUserName"><th mat-header-cell *matHeaderCellDef>Assigned To</th><td mat-cell *matCellDef="let t">{{ t.assignedToUserName || '—' }}</td></ng-container>
+            <ng-container matColumnDef="toLocationName"><th mat-header-cell *matHeaderCellDef>Location</th><td mat-cell *matCellDef="let t">{{ t.toLocationName || '—' }}</td></ng-container>
+            <ng-container matColumnDef="returnDate"><th mat-header-cell *matHeaderCellDef>Return Date</th><td mat-cell *matCellDef="let t">{{ t.returnDate ? (t.returnDate | date:'short') : '—' }}</td></ng-container>
+            <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let t"><span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span></td></ng-container>
+            <tr mat-header-row *matHeaderRowDef="transferColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: transferColumns"></tr>
+          </table>
+        </ng-container>
+
+        <!-- Mobile cards -->
+        <ng-container *ngIf="screen.isMobile()">
+          <div class="m-list">
+            @for (t of transfers(); track t.id) {
+              <div class="m-card">
+                <div class="m-row"><span class="m-label">Date</span><span class="m-val">{{ t.transferDate | date:'shortDate' }}</span></div>
+                <div class="m-row"><span class="m-label">Assigned To</span><span class="m-val">{{ t.assignedToUserName || '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Location</span><span class="m-val">{{ t.toLocationName || '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Return Date</span><span class="m-val">{{ t.returnDate ? (t.returnDate | date:'shortDate') : '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Status</span><span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span></div>
+              </div>
+            }
+          </div>
+        </ng-container>
+
+        <p *ngIf="transfers().length === 0" class="empty-state">No transfer history.</p>
+      </div>
+    </mat-tab>
+
+    <!-- ── Maintenance ── -->
+    <mat-tab label="Maintenance ({{ maintenance().length }})">
+      <div class="tab-table-area">
+
+        <!-- Desktop table -->
+        <ng-container *ngIf="!screen.isMobile()">
+          <table mat-table [dataSource]="maintenance()">
+            <ng-container matColumnDef="type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let m">{{ m.type }}</td></ng-container>
+            <ng-container matColumnDef="scheduledDate"><th mat-header-cell *matHeaderCellDef>Scheduled</th><td mat-cell *matCellDef="let m">{{ m.scheduledDate ? (m.scheduledDate | date) : '—' }}</td></ng-container>
+            <ng-container matColumnDef="technicianName"><th mat-header-cell *matHeaderCellDef>Technician</th><td mat-cell *matCellDef="let m">{{ m.technicianName || '—' }}</td></ng-container>
+            <ng-container matColumnDef="cost"><th mat-header-cell *matHeaderCellDef>Cost</th><td mat-cell *matCellDef="let m">{{ m.cost ? (m.cost | currency:'RON':'symbol':'1.2-2') : '—' }}</td></ng-container>
+            <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let m"><span class="status-badge" [ngClass]="m.status.toLowerCase()">{{ m.status }}</span></td></ng-container>
+            <tr mat-header-row *matHeaderRowDef="maintenanceColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: maintenanceColumns"></tr>
+          </table>
+        </ng-container>
+
+        <!-- Mobile cards -->
+        <ng-container *ngIf="screen.isMobile()">
+          <div class="m-list">
+            @for (m of maintenance(); track m.id) {
+              <div class="m-card">
+                <div class="m-row"><span class="m-label">Type</span><span class="m-val">{{ m.type }}</span></div>
+                <div class="m-row"><span class="m-label">Scheduled</span><span class="m-val">{{ m.scheduledDate ? (m.scheduledDate | date) : '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Technician</span><span class="m-val">{{ m.technicianName || '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Cost</span><span class="m-val">{{ m.cost ? (m.cost | currency:'RON':'symbol':'1.2-2') : '—' }}</span></div>
+                <div class="m-row"><span class="m-label">Status</span><span class="status-badge" [ngClass]="m.status.toLowerCase()">{{ m.status }}</span></div>
+              </div>
+            }
+          </div>
+        </ng-container>
+
+        <p *ngIf="maintenance().length === 0" class="empty-state">No maintenance records.</p>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>
