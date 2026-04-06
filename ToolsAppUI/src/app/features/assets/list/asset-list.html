@@ -1,8 +1,8 @@
 <div class="page-container">
   <div class="page-header">
-    <h1>Assets</h1>
+    <h1>{{ 'asset.title' | translate }}</h1>
     <a mat-raised-button color="primary" routerLink="/assets/new">
-      <mat-icon>add</mat-icon> Add Asset
+      <mat-icon>add</mat-icon> {{ 'asset.add' | translate }}
     </a>
   </div>
 
@@ -10,27 +10,27 @@
     <!-- Filter bar -->
     <div class="filter-bar">
       <mat-form-field appearance="outline">
-        <mat-label>Search</mat-label>
-        <input matInput [formControl]="searchCtrl" placeholder="Name or serial…" />
+        <mat-label>{{ 'common.search' | translate }}</mat-label>
+        <input matInput [formControl]="searchCtrl" [placeholder]="'asset.search' | translate" />
         <mat-icon matSuffix>search</mat-icon>
+        <button matSuffix mat-icon-button type="button" (click)="toggleScanner()" matTooltip="Scanează QR / barcode">
+          <mat-icon [style.color]="scanning() ? 'var(--red)' : 'var(--blue)'">{{ scanning() ? 'close' : 'qr_code_scanner' }}</mat-icon>
+        </button>
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
+        <mat-label>{{ 'asset.status' | translate }}</mat-label>
         <mat-select [formControl]="statusCtrl">
-          <mat-option value="">All</mat-option>
+          <mat-option value="">{{ 'asset.all' | translate }}</mat-option>
           @for (s of statuses; track s) { <mat-option [value]="s">{{ statusLabel(s) }}</mat-option> }
         </mat-select>
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Category</mat-label>
+        <mat-label>{{ 'asset.category' | translate }}</mat-label>
         <mat-select [formControl]="categoryCtrl">
-          <mat-option value="">All</mat-option>
+          <mat-option value="">{{ 'asset.all' | translate }}</mat-option>
           @for (c of categories; track c) { <mat-option [value]="c">{{ c }}</mat-option> }
         </mat-select>
       </mat-form-field>
-      <button mat-icon-button color="primary" matTooltip="Scan QR / barcode" (click)="toggleScanner()">
-        <mat-icon>{{ scanning() ? 'close' : 'qr_code_scanner' }}</mat-icon>
-      </button>
     </div>
 
     <!-- Scanner -->
@@ -50,26 +50,40 @@
       <!-- ── DESKTOP: table ───────────────────────────────────────────── -->
       <ng-container *ngIf="!screen.isMobile()">
         <table mat-table [dataSource]="assets()">
+
+          <!-- Image column -->
+          <ng-container matColumnDef="image">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let a">
+              <div class="asset-thumb-cell">
+                <a [routerLink]="['/assets', a.id]">
+                  <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb-sm" />
+                  <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder-sm"><mat-icon>build</mat-icon></div>
+                </a>
+              </div>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'asset.name' | translate }}</th>
             <td mat-cell *matCellDef="let a"><a [routerLink]="['/assets', a.id]" class="asset-link">{{ a.name }}</a></td>
           </ng-container>
           <ng-container matColumnDef="serialNumber">
-            <th mat-header-cell *matHeaderCellDef>Serial #</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'asset.serial' | translate }}</th>
             <td mat-cell *matCellDef="let a">{{ a.serialNumber || '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'asset.category' | translate }}</th>
             <td mat-cell *matCellDef="let a">{{ a.category || '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'asset.status' | translate }}</th>
             <td mat-cell *matCellDef="let a">
               <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
             </td>
           </ng-container>
           <ng-container matColumnDef="qrCode">
-            <th mat-header-cell *matHeaderCellDef>QR Code</th>
+            <th mat-header-cell *matHeaderCellDef>{{ 'asset.qr' | translate }}</th>
             <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}…</code></td>
           </ng-container>
           <ng-container matColumnDef="actions">
@@ -91,34 +105,30 @@
       <ng-container *ngIf="screen.isMobile()">
         <div class="m-list">
           @for (a of assets(); track a.id) {
-            <div class="m-card">
-              <div class="m-row">
-                <span class="m-label">Name</span>
-                <a [routerLink]="['/assets', a.id]" class="asset-link m-val">{{ a.name }}</a>
-              </div>
-              <div class="m-row">
-                <span class="m-label">Category</span>
-                <span class="m-val">{{ a.category || '—' }}</span>
-              </div>
-              <div class="m-row">
-                <span class="m-label">Serial #</span>
-                <span class="m-val">{{ a.serialNumber || '—' }}</span>
-              </div>
-              <div class="m-row">
-                <span class="m-label">Status</span>
-                <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
-              </div>
-              <div class="m-actions">
-                <a mat-icon-button [routerLink]="['/assets', a.id]" matTooltip="View"><mat-icon>visibility</mat-icon></a>
-                <a mat-icon-button [routerLink]="['/assets', a.id, 'edit']" matTooltip="Edit"><mat-icon>edit</mat-icon></a>
-                <button mat-icon-button color="warn" (click)="delete(a.id)" matTooltip="Delete"><mat-icon>delete</mat-icon></button>
+            <div class="m-card asset-m-card">
+              <!-- Image on the left -->
+              <a [routerLink]="['/assets', a.id]" class="asset-thumb-wrap">
+                <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb" />
+                <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder">
+                  <mat-icon>build</mat-icon>
+                </div>
+              </a>
+
+              <!-- Details on the right -->
+              <div class="asset-m-body">
+                <a [routerLink]="['/assets', a.id]" class="asset-m-name">{{ a.name }}</a>
+                <span *ngIf="a.serialNumber" class="asset-m-serial">{{ a.serialNumber }}</span>
+                <div class="asset-m-meta">
+                  <span *ngIf="a.category" class="asset-m-category">{{ a.category }}</span>
+                  <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+                </div>
               </div>
             </div>
           }
         </div>
       </ng-container>
 
-      <p *ngIf="assets().length === 0" class="empty-state">No assets found.</p>
+      <p *ngIf="assets().length === 0" class="empty-state">{{ 'asset.noResults' | translate }}</p>
     </ng-container>
   </div>
 </div>

@@ -36,6 +36,9 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(name = "qr_code", unique = true)
+    private String qrCode;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

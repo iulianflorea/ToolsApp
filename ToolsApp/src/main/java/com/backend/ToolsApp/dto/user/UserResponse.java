@@ -19,5 +19,6 @@ public class UserResponse {
     private String fullName;
     private UserRole role;
     private boolean active;
+    private String qrCode;
     private LocalDateTime createdAt;
 }

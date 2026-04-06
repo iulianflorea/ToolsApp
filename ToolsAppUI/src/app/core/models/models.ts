@@ -42,6 +42,10 @@ export interface Asset {
   imageUrl?: string;
   warrantyMonths?: number;
   warrantyExpiresAt?: string;
+  metrologyDate?: string;
+  metrologyExpiryDate?: string;
+  currentLocationId?: number;
+  currentLocationName?: string;
   createdAt: string;
 }
 
@@ -55,6 +59,9 @@ export interface AssetRequest {
   notes?: string;
   imageUrl?: string;
   warrantyMonths?: number;
+  metrologyDate?: string;
+  metrologyExpiryDate?: string;
+  locationId?: number;
 }
 
 export interface Location {
@@ -86,6 +93,7 @@ export interface Transfer {
   assignedToUserName?: string;
   transferDate: string;
   returnDate?: string;
+  indefinitePeriod?: boolean;
   notes?: string;
   status: TransferStatus;
 }
@@ -96,7 +104,17 @@ export interface TransferRequest {
   toLocationId?: number;
   assignedToUserId?: number;
   returnDate?: string;
+  indefinitePeriod?: boolean;
   notes?: string;
+}
+
+export interface CategoryStats {
+  category: string;
+  total: number;
+  available: number;
+  inUse: number;
+  inMaintenance: number;
+  retired: number;
 }
 
 export interface MaintenanceRecord {
@@ -140,6 +158,7 @@ export interface AppUser {
   fullName: string;
   role: UserRole;
   active: boolean;
+  qrCode?: string;
   createdAt: string;
 }
 

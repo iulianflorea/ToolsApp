@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +17,7 @@ import { ScreenService } from '../../core/services/screen.service';
 @Component({
   selector: 'app-users',
   imports: [
+    RouterLink,
     ReactiveFormsModule,
     MatTableModule,
     MatButtonModule,
@@ -34,6 +36,7 @@ import { ScreenService } from '../../core/services/screen.service';
 })
 export class UsersComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   private readonly userService = inject(UserService);
   readonly screen = inject(ScreenService);
 
@@ -57,6 +60,10 @@ export class UsersComponent implements OnInit {
 
   load(): void {
     this.userService.getAll().subscribe((u) => this.users.set(u));
+  }
+
+  openRow(user: AppUser): void {
+    this.router.navigate(['/users', user.id]);
   }
 
   openForm(user?: AppUser): void {

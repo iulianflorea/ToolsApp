@@ -23,6 +23,16 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getById(id));
+    }
+
+    @GetMapping("/qr/{qrCode}")
+    public ResponseEntity<UserResponse> getByQrCode(@PathVariable String qrCode) {
+        return ResponseEntity.ok(userService.getByQrCode(qrCode));
+    }
+
     @PostMapping
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request));

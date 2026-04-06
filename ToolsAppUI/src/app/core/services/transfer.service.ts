@@ -9,11 +9,14 @@ export class TransferService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(assetId?: number, userId?: number, status?: TransferStatus): Observable<Transfer[]> {
+  getAll(assetId?: number, userId?: number, status?: TransferStatus,
+         fromDate?: string, toDate?: string): Observable<Transfer[]> {
     let params = new HttpParams();
-    if (assetId) params = params.set('assetId', assetId);
-    if (userId) params = params.set('userId', userId);
-    if (status) params = params.set('status', status);
+    if (assetId)   params = params.set('assetId', assetId);
+    if (userId)    params = params.set('userId', userId);
+    if (status)    params = params.set('status', status);
+    if (fromDate)  params = params.set('fromDate', fromDate);
+    if (toDate)    params = params.set('toDate', toDate);
     return this.http.get<Transfer[]>(this.API, { params });
   }
 
@@ -23,5 +26,9 @@ export class TransferService {
 
   return(id: number): Observable<Transfer> {
     return this.http.put<Transfer>(`${this.API}/${id}/return`, {});
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/${id}`);
   }
 }

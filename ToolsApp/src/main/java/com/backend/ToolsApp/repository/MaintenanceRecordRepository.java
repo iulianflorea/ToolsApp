@@ -31,4 +31,6 @@ public interface MaintenanceRecordRepository extends JpaRepository<MaintenanceRe
            "AND m.scheduledDate BETWEEN :from AND :to")
     List<MaintenanceRecord> findUpcomingMaintenance(@Param("from") LocalDate from,
                                                      @Param("to") LocalDate to);
+
+    void deleteByAssetId(Long assetId);
 }

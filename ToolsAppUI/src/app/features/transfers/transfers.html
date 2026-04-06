@@ -1,62 +1,90 @@
 <div class="page-container">
   <div class="page-header">
-    <h1>Transfers</h1>
-    <button mat-raised-button color="primary" (click)="showForm.set(true)"><mat-icon>add</mat-icon> Assign Tool</button>
+    <h1>{{ 'tr.title' | translate }}</h1>
+    <button mat-raised-button color="primary" (click)="showForm.set(true)"><mat-icon>add</mat-icon> {{ 'tr.assign' | translate }}</button>
   </div>
 
   <mat-card *ngIf="showForm()" class="form-card">
-    <mat-card-header><mat-card-title>Assign Tool to User / Location</mat-card-title></mat-card-header>
+    <mat-card-header><mat-card-title>{{ 'tr.assign' | translate }}</mat-card-title></mat-card-header>
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="save()">
         <div class="form-grid">
+          <!-- Asset field cu QR înăuntru -->
+          <div>
+            <mat-form-field appearance="outline" style="width:100%">
+              <mat-label>{{ 'tr.asset' | translate }} *</mat-label>
+              <input matInput [formControl]="assetSearch" [matAutocomplete]="autoAsset" [placeholder]="'common.search' | translate" />
+              <mat-icon matSuffix>search</mat-icon>
+              <button matSuffix mat-icon-button type="button" (click)="toggleAssetScanner()" [matTooltip]="scanningAsset() ? 'Închide scanner' : 'Scanează QR unealtă'">
+                <mat-icon [style.color]="scanningAsset() ? 'var(--red)' : 'var(--blue)'">{{ scanningAsset() ? 'close' : 'qr_code_scanner' }}</mat-icon>
+              </button>
+              <mat-autocomplete #autoAsset="matAutocomplete" (optionSelected)="onAssetSelected($event)">
+                @for (a of filteredAssets(); track a.id) {
+                  <mat-option [value]="a"><span>{{ a.name }}</span>@if (a.serialNumber){<span class="option-meta">{{ a.serialNumber }}</span>}</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+            <div *ngIf="scanningAsset()" class="scanner-panel">
+              <zxing-scanner [enable]="scanningAsset()" (scanSuccess)="onAssetScan($event)" (scanError)="onScanError()"></zxing-scanner>
+            </div>
+          </div>
+
+          <!-- User field cu QR înăuntru -->
+          <div>
+            <mat-form-field appearance="outline" style="width:100%">
+              <mat-label>{{ 'tr.assignedTo' | translate }}</mat-label>
+              <input matInput [formControl]="userSearch" [matAutocomplete]="autoUser" placeholder="Caută utilizator..." />
+              <mat-icon matSuffix>person_search</mat-icon>
+              <button matSuffix mat-icon-button type="button" (click)="toggleUserScanner()" [matTooltip]="scanningUser() ? 'Închide scanner' : 'Scanează QR utilizator'">
+                <mat-icon [style.color]="scanningUser() ? 'var(--red)' : 'var(--blue)'">{{ scanningUser() ? 'close' : 'qr_code_scanner' }}</mat-icon>
+              </button>
+              <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="onUserSelected($event)">
+                @for (u of filteredUsers(); track u.id) {
+                  <mat-option [value]="u"><span>{{ u.fullName }}</span><span class="option-meta">{{ u.role }}</span></mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+            <div *ngIf="scanningUser()" class="scanner-panel">
+              <zxing-scanner [enable]="scanningUser()" (scanSuccess)="onUserScan($event)" (scanError)="onScanError()"></zxing-scanner>
+            </div>
+          </div>
+
+          <p *ngIf="scanError()" class="scan-error" style="grid-column:1/-1">{{ scanError() }}</p>
           <mat-form-field appearance="outline">
-            <mat-label>Asset *</mat-label>
-            <input matInput [formControl]="assetSearch" [matAutocomplete]="autoAsset" placeholder="Caută după nume sau serie..." />
-            <mat-icon matSuffix>search</mat-icon>
-            <mat-autocomplete #autoAsset="matAutocomplete" (optionSelected)="onAssetSelected($event)">
-              @for (a of filteredAssets(); track a.id) {
-                <mat-option [value]="a"><span>{{ a.name }}</span>@if (a.serialNumber){<span class="option-meta">{{ a.serialNumber }}</span>}</mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Assign To (User)</mat-label>
-            <input matInput [formControl]="userSearch" [matAutocomplete]="autoUser" placeholder="Caută utilizator..." />
-            <mat-icon matSuffix>person_search</mat-icon>
-            <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="onUserSelected($event)">
-              @for (u of filteredUsers(); track u.id) {
-                <mat-option [value]="u"><span>{{ u.fullName }}</span><span class="option-meta">{{ u.role }}</span></mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>From Location</mat-label>
+            <mat-label>{{ 'tr.fromLoc' | translate }}</mat-label>
             <input matInput [formControl]="fromLocSearch" [matAutocomplete]="autoFrom" placeholder="Caută locație..." />
             <mat-autocomplete #autoFrom="matAutocomplete" (optionSelected)="onFromLocSelected($event)">
               @for (l of filteredFromLocs(); track l.id) { <mat-option [value]="l">{{ l.name }}</mat-option> }
             </mat-autocomplete>
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>To Location</mat-label>
+            <mat-label>{{ 'tr.toLoc' | translate }}</mat-label>
             <input matInput [formControl]="toLocSearch" [matAutocomplete]="autoTo" placeholder="Caută locație..." />
             <mat-autocomplete #autoTo="matAutocomplete" (optionSelected)="onToLocSelected($event)">
               @for (l of filteredToLocs(); track l.id) { <mat-option [value]="l">{{ l.name }}</mat-option> }
             </mat-autocomplete>
           </mat-form-field>
+          <div class="return-date-wrap">
+            <mat-form-field appearance="outline" style="flex:1">
+              <mat-label>{{ 'tr.returnDate' | translate }}</mat-label>
+              <input matInput [matDatepicker]="returnPicker" formControlName="returnDate"
+                     [disabled]="!!indefinitePeriod.value" />
+              <mat-datepicker-toggle matIconSuffix [for]="returnPicker"></mat-datepicker-toggle>
+              <mat-datepicker #returnPicker></mat-datepicker>
+            </mat-form-field>
+            <label class="indefinite-label">
+              <input type="checkbox" [formControl]="indefinitePeriod" />
+              {{ 'tr.indefinite' | translate }}
+            </label>
+          </div>
           <mat-form-field appearance="outline">
-            <mat-label>Expected Return Date</mat-label>
-            <input matInput [matDatepicker]="returnPicker" formControlName="returnDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="returnPicker"></mat-datepicker-toggle>
-            <mat-datepicker #returnPicker></mat-datepicker>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Notes</mat-label>
+            <mat-label>{{ 'tr.notes' | translate }}</mat-label>
             <input matInput formControlName="notes" />
           </mat-form-field>
         </div>
         <div class="form-actions">
-          <button mat-button type="button" (click)="resetForm()">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Assign</button>
+          <button mat-button type="button" (click)="resetForm()">{{ 'common.cancel' | translate }}</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ 'tr.assign' | translate }}</button>
         </div>
       </form>
     </mat-card-content>
@@ -65,46 +93,75 @@
   <div class="card">
     <div class="filter-bar">
       <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
+        <mat-label>{{ 'asset.status' | translate }}</mat-label>
         <mat-select (selectionChange)="filterByStatus($event.value)">
-          <mat-option value="">All</mat-option>
+          <mat-option value="">{{ 'asset.all' | translate }}</mat-option>
           @for (s of statuses; track s) { <mat-option [value]="s">{{ s }}</mat-option> }
         </mat-select>
       </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'tr.fromDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="pickerFrom" [formControl]="fromDateCtrl" />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFrom></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'tr.toDate' | translate }}</mat-label>
+        <input matInput [matDatepicker]="pickerTo" [formControl]="toDateCtrl" />
+        <mat-datepicker-toggle matIconSuffix [for]="pickerTo"></mat-datepicker-toggle>
+        <mat-datepicker #pickerTo></mat-datepicker>
+      </mat-form-field>
+
+      <button mat-icon-button *ngIf="fromDateCtrl.value || toDateCtrl.value"
+              (click)="clearDateFilter()" [matTooltip]="'common.cancel' | translate">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
 
     <!-- ── DESKTOP: table ─────────────────────────────────────────────── -->
     <ng-container *ngIf="!screen.isMobile()">
       <table mat-table [dataSource]="transfers()">
         <ng-container matColumnDef="asset">
-          <th mat-header-cell *matHeaderCellDef>Asset</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.asset' | translate }}</th>
           <td mat-cell *matCellDef="let t"><strong>{{ t.assetName }}</strong><span *ngIf="t.assetSerialNumber" class="serial-chip">{{ t.assetSerialNumber }}</span></td>
         </ng-container>
         <ng-container matColumnDef="assignedTo">
-          <th mat-header-cell *matHeaderCellDef>Assigned To</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.assignedToCol' | translate }}</th>
           <td mat-cell *matCellDef="let t">{{ t.assignedToUserName || '—' }}</td>
         </ng-container>
-        <ng-container matColumnDef="location">
-          <th mat-header-cell *matHeaderCellDef>Location</th>
+        <ng-container matColumnDef="fromLocation">
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.fromCol' | translate }}</th>
+          <td mat-cell *matCellDef="let t">{{ t.fromLocationName || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="toLocation">
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.toCol' | translate }}</th>
           <td mat-cell *matCellDef="let t">{{ t.toLocationName || '—' }}</td>
         </ng-container>
         <ng-container matColumnDef="transferDate">
-          <th mat-header-cell *matHeaderCellDef>Transfer Date</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.date' | translate }}</th>
           <td mat-cell *matCellDef="let t">{{ t.transferDate | date:'short' }}</td>
         </ng-container>
         <ng-container matColumnDef="returnDate">
-          <th mat-header-cell *matHeaderCellDef>Return Due</th>
-          <td mat-cell *matCellDef="let t">{{ t.returnDate ? (t.returnDate | date:'short') : '—' }}</td>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tr.returnDue' | translate }}</th>
+          <td mat-cell *matCellDef="let t">
+            <ng-container *ngIf="t.indefinitePeriod">{{ 'tr.indefiniteVal' | translate }}</ng-container>
+            <ng-container *ngIf="!t.indefinitePeriod">{{ t.returnDate ? (t.returnDate | date:'short') : '—' }}</ng-container>
+          </td>
         </ng-container>
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'asset.status' | translate }}</th>
           <td mat-cell *matCellDef="let t"><span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span></td>
         </ng-container>
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let t" class="mat-column-actions">
-            <button mat-icon-button color="primary" *ngIf="t.status === 'ACTIVE'" (click)="returnAsset(t.id)" matTooltip="Mark Returned">
+            <button mat-icon-button color="primary" *ngIf="t.status === 'ACTIVE'" (click)="returnAsset(t.id)" [matTooltip]="'tr.markReturned' | translate">
               <mat-icon>assignment_return</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteTransfer(t.id)" [matTooltip]="'common.delete' | translate">
+              <mat-icon>delete</mat-icon>
             </button>
           </td>
         </ng-container>
@@ -119,28 +176,38 @@
         @for (t of transfers(); track t.id) {
           <div class="m-card">
             <div class="m-row">
-              <span class="m-label">Asset</span>
+              <span class="m-label">{{ 'tr.asset' | translate }}</span>
               <span class="m-val-bold">{{ t.assetName }}<ng-container *ngIf="t.assetSerialNumber"> &middot; {{ t.assetSerialNumber }}</ng-container></span>
             </div>
             <div class="m-row">
-              <span class="m-label">Assigned To</span>
+              <span class="m-label">{{ 'tr.assignedToCol' | translate }}</span>
               <span class="m-val">{{ t.assignedToUserName || '—' }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Location</span>
+              <span class="m-label">{{ 'tr.fromCol' | translate }}</span>
+              <span class="m-val">{{ t.fromLocationName || '—' }}</span>
+            </div>
+            <div class="m-row">
+              <span class="m-label">{{ 'tr.toCol' | translate }}</span>
               <span class="m-val">{{ t.toLocationName || '—' }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Return Due</span>
-              <span class="m-val">{{ t.returnDate ? (t.returnDate | date:'shortDate') : '—' }}</span>
+              <span class="m-label">{{ 'tr.returnDue' | translate }}</span>
+              <span class="m-val">
+                <ng-container *ngIf="t.indefinitePeriod">{{ 'tr.indefiniteVal' | translate }}</ng-container>
+                <ng-container *ngIf="!t.indefinitePeriod">{{ t.returnDate ? (t.returnDate | date:'shortDate') : '—' }}</ng-container>
+              </span>
             </div>
             <div class="m-row">
-              <span class="m-label">Status</span>
+              <span class="m-label">{{ 'asset.status' | translate }}</span>
               <span class="status-badge" [ngClass]="t.status.toLowerCase()">{{ t.status }}</span>
             </div>
-            <div class="m-actions" *ngIf="t.status === 'ACTIVE'">
-              <button mat-stroked-button color="primary" (click)="returnAsset(t.id)">
-                <mat-icon>assignment_return</mat-icon> Mark Returned
+            <div class="m-actions">
+              <button mat-stroked-button color="primary" *ngIf="t.status === 'ACTIVE'" (click)="returnAsset(t.id)">
+                <mat-icon>assignment_return</mat-icon> {{ 'tr.markReturned' | translate }}
+              </button>
+              <button mat-stroked-button color="warn" (click)="deleteTransfer(t.id)">
+                <mat-icon>delete</mat-icon> {{ 'common.delete' | translate }}
               </button>
             </div>
           </div>
@@ -148,6 +215,6 @@
       </div>
     </ng-container>
 
-    <p *ngIf="transfers().length === 0" class="empty-state">No transfers found.</p>
+    <p *ngIf="transfers().length === 0" class="empty-state">{{ 'tr.noResults' | translate }}</p>
   </div>
 </div>

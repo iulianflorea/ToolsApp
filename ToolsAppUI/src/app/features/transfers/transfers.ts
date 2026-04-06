@@ -12,7 +12,10 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { NgIf, NgClass, DatePipe } from '@angular/common';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { startWith } from 'rxjs';
+import { toLocalDateString } from '../../core/utils/date.utils';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { TransferService } from '../../core/services/transfer.service';
 import { AssetService } from '../../core/services/asset.service';
 import { LocationService } from '../../core/services/location.service';
@@ -38,6 +41,8 @@ import { ScreenService } from '../../core/services/screen.service';
     NgIf,
     NgClass,
     DatePipe,
+    ZXingScannerModule,
+    TranslatePipe,
   ],
   templateUrl: './transfers.html',
   styleUrl: './transfers.scss',
@@ -53,9 +58,16 @@ export class TransfersComponent implements OnInit {
   transfers = signal<Transfer[]>([]);
   showForm = signal(false);
 
-  displayedColumns = ['asset', 'assignedTo', 'location', 'transferDate', 'returnDate', 'status', 'actions'];
+  displayedColumns = ['asset', 'assignedTo', 'fromLocation', 'toLocation', 'transferDate', 'returnDate', 'status', 'actions'];
   statuses: TransferStatus[] = ['ACTIVE', 'RETURNED'];
   statusFilter = signal<TransferStatus | undefined>(undefined);
+  fromDateCtrl = new FormControl<Date | null>(null);
+  toDateCtrl   = new FormControl<Date | null>(null);
+
+  // QR scanner states
+  scanningAsset = signal(false);
+  scanningUser  = signal(false);
+  scanError     = signal('');
 
   // raw data
   private allAssets: Asset[] = [];
@@ -74,6 +86,8 @@ export class TransfersComponent implements OnInit {
   fromLocSearch  = new FormControl('');
   toLocSearch    = new FormControl('');
 
+  indefinitePeriod = new FormControl(false);
+
   form = this.fb.group({
     assetId:          [null as number | null, Validators.required],
     assignedToUserId: [null as number | null],
@@ -86,7 +100,10 @@ export class TransfersComponent implements OnInit {
   ngOnInit(): void {
     this.load();
 
-    this.assetService.getAll('AVAILABLE').subscribe((a) => {
+    this.fromDateCtrl.valueChanges.subscribe(() => this.load());
+    this.toDateCtrl.valueChanges.subscribe(() => this.load());
+
+    this.assetService.getAll().subscribe((a) => {
       this.allAssets = a;
       this.filteredAssets.set(a);
     });
@@ -135,18 +152,16 @@ export class TransfersComponent implements OnInit {
     });
   }
 
+  // ── Autocomplete handlers ────────────────────────���───────────────────────────
+
   onAssetSelected(event: MatAutocompleteSelectedEvent): void {
     const a = event.option.value as Asset;
-    this.form.controls.assetId.setValue(a.id);
-    this.assetSearch.setValue(
-      a.name + (a.serialNumber ? '  ·  ' + a.serialNumber : ''), { emitEvent: false }
-    );
+    this.selectAsset(a);
   }
 
   onUserSelected(event: MatAutocompleteSelectedEvent): void {
     const u = event.option.value as AppUser;
-    this.form.controls.assignedToUserId.setValue(u.id);
-    this.userSearch.setValue(u.fullName, { emitEvent: false });
+    this.selectUser(u);
   }
 
   onFromLocSelected(event: MatAutocompleteSelectedEvent): void {
@@ -161,10 +176,73 @@ export class TransfersComponent implements OnInit {
     this.toLocSearch.setValue(l.name, { emitEvent: false });
   }
 
-  load(): void {
-    this.transferService.getAll(undefined, undefined, this.statusFilter()).subscribe((t) =>
-      this.transfers.set(t),
+  // ── QR scanner ──────────────────────────────────────────────────────────────
+
+  toggleAssetScanner(): void {
+    this.scanError.set('');
+    this.scanningUser.set(false);
+    this.scanningAsset.set(!this.scanningAsset());
+  }
+
+  toggleUserScanner(): void {
+    this.scanError.set('');
+    this.scanningAsset.set(false);
+    this.scanningUser.set(!this.scanningUser());
+  }
+
+  onAssetScan(result: string): void {
+    this.scanningAsset.set(false);
+    this.assetService.getByQrCode(result).subscribe({
+      next: (a) => { this.selectAsset(a); this.scanError.set(''); },
+      error: () => this.scanError.set('Unealta nu a fost găsită pentru codul scanat.'),
+    });
+  }
+
+  onUserScan(result: string): void {
+    this.scanningUser.set(false);
+    this.userService.getByQrCode(result).subscribe({
+      next: (u) => { this.selectUser(u); this.scanError.set(''); },
+      error: () => this.scanError.set('Utilizatorul nu a fost găsit pentru codul scanat.'),
+    });
+  }
+
+  onScanError(): void {
+    this.scanError.set('Eroare cameră. Acordă permisiunea de acces la cameră.');
+  }
+
+  private selectAsset(a: Asset): void {
+    this.form.controls.assetId.setValue(a.id);
+    this.assetSearch.setValue(
+      a.name + (a.serialNumber ? '  ·  ' + a.serialNumber : ''), { emitEvent: false }
     );
+    // Auto-fill from location from the asset's current location
+    if (a.currentLocationId && a.currentLocationName) {
+      this.form.controls.fromLocationId.setValue(a.currentLocationId);
+      this.fromLocSearch.setValue(a.currentLocationName, { emitEvent: false });
+    } else {
+      this.form.controls.fromLocationId.setValue(null);
+      this.fromLocSearch.setValue('', { emitEvent: false });
+    }
+  }
+
+  private selectUser(u: AppUser): void {
+    this.form.controls.assignedToUserId.setValue(u.id);
+    this.userSearch.setValue(u.fullName, { emitEvent: false });
+  }
+
+  // ── CRUD ────────────────────────────────────────────────────────────────────
+
+  load(): void {
+    const fromDate = toLocalDateString(this.fromDateCtrl.value ?? undefined);
+    const toDate   = toLocalDateString(this.toDateCtrl.value ?? undefined);
+    this.transferService.getAll(undefined, undefined, this.statusFilter(), fromDate, toDate)
+      .subscribe((t) => this.transfers.set(t));
+  }
+
+  clearDateFilter(): void {
+    this.fromDateCtrl.setValue(null, { emitEvent: false });
+    this.toDateCtrl.setValue(null, { emitEvent: false });
+    this.load();
   }
 
   filterByStatus(status: TransferStatus | ''): void {
@@ -174,7 +252,11 @@ export class TransfersComponent implements OnInit {
 
   resetForm(): void {
     this.showForm.set(false);
+    this.scanningAsset.set(false);
+    this.scanningUser.set(false);
+    this.scanError.set('');
     this.form.reset();
+    this.indefinitePeriod.setValue(false);
     this.assetSearch.setValue('');
     this.userSearch.setValue('');
     this.fromLocSearch.setValue('');
@@ -184,12 +266,16 @@ export class TransfersComponent implements OnInit {
   save(): void {
     if (this.form.invalid) return;
     const raw = this.form.value;
+    const indeterminate = !!this.indefinitePeriod.value;
     const request = {
-      assetId: raw.assetId!,
+      assetId:          raw.assetId!,
       assignedToUserId: raw.assignedToUserId ?? undefined,
       fromLocationId:   raw.fromLocationId   ?? undefined,
       toLocationId:     raw.toLocationId     ?? undefined,
-      returnDate:       raw.returnDate ? new Date(raw.returnDate).toISOString().split('T')[0] : undefined,
+      returnDate:       (!indeterminate && raw.returnDate)
+                          ? toLocalDateString(new Date(raw.returnDate))
+                          : undefined,
+      indefinitePeriod: indeterminate,
       notes:            raw.notes || undefined,
     };
     this.transferService.create(request).subscribe(() => {
@@ -201,5 +287,10 @@ export class TransfersComponent implements OnInit {
   returnAsset(id: number): void {
     if (!confirm('Mark this transfer as returned?')) return;
     this.transferService.return(id).subscribe(() => this.load());
+  }
+
+  deleteTransfer(id: number): void {
+    if (!confirm('Ștergi acest transfer?')) return;
+    this.transferService.delete(id).subscribe(() => this.load());
   }
 }

@@ -13,6 +13,10 @@ export class UserService {
     return this.http.get<AppUser[]>(this.API);
   }
 
+  getById(id: number): Observable<AppUser> {
+    return this.http.get<AppUser>(`${this.API}/${id}`);
+  }
+
   create(request: UserRequest): Observable<AppUser> {
     return this.http.post<AppUser>(this.API, request);
   }
@@ -23,5 +27,9 @@ export class UserService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/${id}`);
+  }
+
+  getByQrCode(qrCode: string): Observable<AppUser> {
+    return this.http.get<AppUser>(`${this.API}/qr/${qrCode}`);
   }
 }

@@ -51,6 +51,11 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./features/users/users').then((m) => m.UsersComponent),
       },
+      {
+        path: 'users/:id',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/users/detail/user-detail').then((m) => m.UserDetailComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

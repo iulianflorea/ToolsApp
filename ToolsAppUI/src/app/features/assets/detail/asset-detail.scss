@@ -9,6 +9,82 @@
   }
 }
 
+// ─── Hero image ───────────────────────────────────────────────────────────────
+.asset-hero {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  cursor: pointer;
+  background: var(--bg-inset, #F5F5F7);
+  border: 2px dashed var(--border);
+  transition: border-color .2s, background .2s;
+
+  &.has-photo {
+    border-style: solid;
+    border-color: transparent;
+  }
+
+  &:hover .hero-upload-btn {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    height: 200px;
+    border-radius: 12px;
+  }
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+  color: var(--text-secondary);
+  user-select: none;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: .4; }
+  span { font-size: 14px; font-weight: 500; opacity: .6; }
+}
+
+.hero-upload-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity .2s;
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+
+  &.uploading { opacity: 1; }
+
+  .asset-hero:not(.has-photo) & { opacity: 1; background: transparent; color: var(--text-secondary); }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
 .info-list {
   display: grid;
   grid-template-columns: 150px 1fr;
@@ -18,14 +94,14 @@
   dt {
     font-size: 12px;
     font-weight: 600;
-    color: #6E6E73;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
 
   dd {
     font-size: 14px;
-    color: #1D1D1F;
+    color: var(--text-primary);
   }
 }
 
@@ -40,8 +116,8 @@
 .qr-code-text {
   font-size: 10px;
   word-break: break-all;
-  color: #6E6E73;
-  background: #F5F5F7;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
   padding: 6px 10px;
   border-radius: 6px;
   max-width: 200px;
@@ -59,11 +135,50 @@
   align-items: center;
   gap: 8px;
   padding: 40px;
-  color: #AEAEB2;
+  color: var(--text-tertiary);
 }
 
-.warranty-expired  { color: #AE1A1A; font-weight: 600; }
-.warranty-active   { color: #147A32; font-weight: 600; }
+// ─── Quick Transfer Form ──────────────────────────────────────────────────────
+.transfer-form-card {
+  margin-bottom: 20px;
+}
+
+.quick-transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.return-date-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.indefinite-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.warranty-expired  { color: var(--red-text);   font-weight: 600; }
+.warranty-active   { color: var(--green-text); font-weight: 600; }
 
 .warranty-expired-badge {
   display: inline-flex;
@@ -73,8 +188,8 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: #FFE5E5;
-  color: #AE1A1A;
+  background: var(--red-bg);
+  color: var(--red-text);
 }
 
 .warranty-active-badge {
@@ -85,6 +200,6 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: #D4F6DC;
-  color: #147A32;
+  background: var(--green-bg);
+  color: var(--green-text);
 }

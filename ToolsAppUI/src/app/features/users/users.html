@@ -29,7 +29,7 @@
 
     <!-- ── DESKTOP: table ─────────────────────────────────────────────── -->
     <ng-container *ngIf="!screen.isMobile()">
-      <table mat-table [dataSource]="users()">
+      <table mat-table [dataSource]="users()" class="clickable-rows">
         <ng-container matColumnDef="fullName">
           <th mat-header-cell *matHeaderCellDef>Name</th>
           <td mat-cell *matCellDef="let u"><strong>{{ u.fullName }}</strong></td>
@@ -54,7 +54,7 @@
         </ng-container>
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let u" class="mat-column-actions">
+          <td mat-cell *matCellDef="let u" class="mat-column-actions" (click)="$event.stopPropagation()">
             <div class="action-buttons">
               <button mat-icon-button (click)="openForm(u)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
               <button mat-icon-button color="warn" (click)="deactivate(u.id)" matTooltip="Deactivate"><mat-icon>block</mat-icon></button>
@@ -62,7 +62,7 @@
           </td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" (click)="openRow(row)"></tr>
       </table>
     </ng-container>
 
@@ -70,7 +70,7 @@
     <ng-container *ngIf="screen.isMobile()">
       <div class="m-list">
         @for (u of users(); track u.id) {
-          <div class="m-card">
+          <div class="m-card" [routerLink]="['/users', u.id]" style="cursor:pointer">
             <div class="m-row">
               <span class="m-label">Name</span>
               <span class="m-val-bold">{{ u.fullName }}</span>
@@ -86,10 +86,6 @@
             <div class="m-row">
               <span class="m-label">Active</span>
               <mat-icon [style.color]="u.active ? 'var(--green)' : 'var(--red)'">{{ u.active ? 'check_circle' : 'cancel' }}</mat-icon>
-            </div>
-            <div class="m-actions">
-              <button mat-icon-button (click)="openForm(u)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button color="warn" (click)="deactivate(u.id)" matTooltip="Deactivate"><mat-icon>block</mat-icon></button>
             </div>
           </div>
         }

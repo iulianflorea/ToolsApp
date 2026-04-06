@@ -14,12 +14,18 @@ import com.backend.ToolsApp.repository.LocationRepository;
 import com.backend.ToolsApp.repository.UserRepository;
 import com.backend.ToolsApp.security.SecurityUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -31,13 +37,21 @@ public class TransferService {
     private final AssetRepository assetRepository;
     private final LocationRepository locationRepository;
     private final UserRepository userRepository;
+    @Lazy private final AssetService assetService;
 
     private Long tenantId() {
         return ((SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getTenantId();
     }
 
-    public List<TransferResponse> getAll(Long assetId, Long userId, TransferStatus status) {
-        return transferRepository.findFiltered(tenantId(), assetId, userId, status)
+    public List<TransferResponse> getAll(Long assetId, Long userId, TransferStatus status,
+                                          LocalDate fromDate, LocalDate toDate) {
+        LocalDateTime from = fromDate != null ? fromDate.atStartOfDay() : null;
+        LocalDateTime to   = toDate   != null ? toDate.atTime(LocalTime.MAX) : null;
+        Sort sort = Sort.by(Sort.Direction.DESC, "transferDate");
+        Pageable pageable = (from == null && to == null)
+                ? PageRequest.of(0, 50, sort)
+                : Pageable.unpaged(sort);
+        return transferRepository.findFiltered(tenantId(), assetId, userId, status, from, to, pageable)
                 .stream().map(this::enrich).toList();
     }
 
@@ -52,9 +66,14 @@ public class TransferService {
         Asset asset = assetRepository.findByIdAndTenantId(request.getAssetId(), tid)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found"));
 
-        if (transferRepository.existsByAssetIdAndTenantIdAndStatus(request.getAssetId(), tid, TransferStatus.ACTIVE)) {
-            throw new BadRequestException("Asset already has an active transfer");
-        }
+        // Close any existing active transfer before creating a new one
+        transferRepository.findFirstByAssetIdAndTenantIdAndStatusOrderByTransferDateDesc(
+                request.getAssetId(), tid, TransferStatus.ACTIVE)
+                .ifPresent(existing -> {
+                    existing.setStatus(TransferStatus.RETURNED);
+                    existing.setReturnDate(LocalDateTime.now());
+                    transferRepository.save(existing);
+                });
 
         AssetTransfer transfer = new AssetTransfer();
         transfer.setTenantId(tid);
@@ -62,7 +81,8 @@ public class TransferService {
         transfer.setFromLocationId(request.getFromLocationId());
         transfer.setToLocationId(request.getToLocationId());
         transfer.setAssignedToUserId(request.getAssignedToUserId());
-        if (request.getReturnDate() != null) {
+        transfer.setIndefinitePeriod(request.isIndefinitePeriod());
+        if (!request.isIndefinitePeriod() && request.getReturnDate() != null) {
             transfer.setReturnDate(request.getReturnDate().atStartOfDay());
         }
         transfer.setNotes(request.getNotes());
@@ -71,6 +91,13 @@ public class TransferService {
         assetRepository.save(asset);
 
         return enrich(transferRepository.save(transfer));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        AssetTransfer transfer = transferRepository.findByIdAndTenantId(id, tenantId())
+                .orElseThrow(() -> new ResourceNotFoundException("Transfer not found"));
+        transferRepository.delete(transfer);
     }
 
     @Transactional
@@ -85,13 +112,13 @@ public class TransferService {
 
         transfer.setStatus(TransferStatus.RETURNED);
         transfer.setReturnDate(LocalDateTime.now());
+        transferRepository.save(transfer);
 
         Asset asset = assetRepository.findByIdAndTenantId(transfer.getAssetId(), tid)
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found"));
-        asset.setStatus(AssetStatus.AVAILABLE);
-        assetRepository.save(asset);
+        assetService.onAssetReturned(asset);
 
-        return enrich(transferRepository.save(transfer));
+        return enrich(transfer);
     }
 
     private TransferResponse enrich(AssetTransfer t) {
@@ -104,6 +131,7 @@ public class TransferService {
         r.setAssignedToUserId(t.getAssignedToUserId());
         r.setTransferDate(t.getTransferDate());
         r.setReturnDate(t.getReturnDate());
+        r.setIndefinitePeriod(t.isIndefinitePeriod());
         r.setNotes(t.getNotes());
         r.setStatus(t.getStatus());
 

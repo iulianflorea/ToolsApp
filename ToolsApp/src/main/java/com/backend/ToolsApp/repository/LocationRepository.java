@@ -10,4 +10,5 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     List<Location> findByTenantId(Long tenantId);
     List<Location> findByTenantIdAndActiveTrue(Long tenantId);
     Optional<Location> findByIdAndTenantId(Long id, Long tenantId);
+    Optional<Location> findByTenantIdAndNameIgnoreCase(Long tenantId, String name);
 }

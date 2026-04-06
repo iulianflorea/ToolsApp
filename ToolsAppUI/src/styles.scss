@@ -517,3 +517,58 @@ html, body {
 
 // Icon buttons
 .mat-mdc-icon-button mat-icon { color: var(--text-secondary); }
+
+// ─── QR print bar (shared: asset-detail, user-detail) ─────────────────────────
+.print-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+  justify-content: center;
+
+  .size-picker {
+    width: 120px;
+    .mat-mdc-form-field-subscript-wrapper { display: none; }
+  }
+}
+
+// ─── Bluetooth print bar ───────────────────────────────────────────────────────
+.bt-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.bt-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--blue);
+}
+
+.bt-error {
+  font-size: 12px;
+  color: #AE1A1A;
+  background: #FFE5E5;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 0;
+}
+
+.bt-unsupported {
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+  text-align: center;
+  margin: 0;
+  line-height: 1.6;
+  mat-icon { vertical-align: middle; opacity: 0.5; }
+}

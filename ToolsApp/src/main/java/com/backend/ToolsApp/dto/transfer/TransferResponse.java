@@ -26,6 +26,7 @@ public class TransferResponse {
     private String assignedToUserName;
     private LocalDateTime transferDate;
     private LocalDateTime returnDate;
+    private boolean indefinitePeriod;
     private String notes;
     private TransferStatus status;
 }

@@ -19,4 +19,7 @@ public class AssetRequest {
     private String notes;
     private String imageUrl;
     private Integer warrantyMonths;
+    private LocalDate metrologyDate;
+    private LocalDate metrologyExpiryDate;
+    private Long locationId;   // set on create → auto-assign transfer + IN_USE
 }

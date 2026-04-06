@@ -16,7 +16,7 @@
         [ngClass]="{ unread: !alert.isRead }"
         class="alert-item"
       >
-        <mat-icon matListItemIcon [class.warn-icon]="alert.type === 'OVERDUE_RETURN'">
+        <mat-icon matListItemIcon [style.color]="alertColor(alert.type)">
           {{ alertIcon(alert.type) }}
         </mat-icon>
         <span matListItemTitle>{{ alert.message }}</span>

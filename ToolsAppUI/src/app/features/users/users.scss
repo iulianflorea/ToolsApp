@@ -1,5 +1,10 @@
 .form-card { margin-bottom: 20px; }
 
+.clickable-rows tr.mat-mdc-row {
+  cursor: pointer;
+  &:hover td { background: var(--bg-inset); }
+}
+
 .form-row {
   display: flex;
   gap: 16px;
@@ -24,9 +29,9 @@
   font-size: 12px;
   font-weight: 500;
 
-  &.admin   { background: rgba(255, 59, 48, 0.1);  color: #AE1A1A; }
-  &.manager { background: rgba(0, 122, 255, 0.1);  color: #0055B3; }
-  &.worker  { background: rgba(52, 199, 89, 0.1);  color: #147A32; }
+  &.admin   { background: var(--red-dim);   color: var(--red-text); }
+  &.manager { background: var(--blue-dim);  color: var(--blue-text); }
+  &.worker  { background: var(--green-dim); color: var(--green-text); }
 }
 
 .empty-state {
@@ -35,6 +40,6 @@
   align-items: center;
   gap: 8px;
   padding: 40px;
-  color: #AEAEB2;
+  color: var(--text-tertiary);
   font-size: 15px;
 }

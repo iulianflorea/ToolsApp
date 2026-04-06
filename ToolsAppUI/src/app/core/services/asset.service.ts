@@ -36,4 +36,10 @@ export class AssetService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/${id}`);
   }
+
+  uploadImage(file: File): Observable<{ url: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ url: string }>('/api/uploads/image', form);
+  }
 }

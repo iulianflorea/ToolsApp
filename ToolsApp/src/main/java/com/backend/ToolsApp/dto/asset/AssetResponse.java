@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @Builder
@@ -28,5 +29,9 @@ public class AssetResponse {
     private String imageUrl;
     private Integer warrantyMonths;
     private LocalDate warrantyExpiresAt;
+    private LocalDate metrologyDate;
+    private LocalDate metrologyExpiryDate;
+    private Long currentLocationId;
+    private String currentLocationName;
     private LocalDateTime createdAt;
 }

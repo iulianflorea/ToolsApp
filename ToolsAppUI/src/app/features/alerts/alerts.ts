@@ -51,9 +51,21 @@ export class AlertsComponent implements OnInit {
 
   alertIcon(type?: string): string {
     switch (type) {
-      case 'MAINTENANCE_DUE': return 'build';
-      case 'OVERDUE_RETURN':  return 'warning';
-      default:                return 'notifications';
+      case 'MAINTENANCE_DUE':    return 'build';
+      case 'OVERDUE_RETURN':     return 'warning';
+      case 'WARRANTY_EXPIRING':  return 'verified_user';
+      case 'METROLOGY_EXPIRING': return 'science';
+      default:                   return 'notifications';
+    }
+  }
+
+  alertColor(type?: string): string {
+    switch (type) {
+      case 'MAINTENANCE_DUE':    return 'var(--orange)';
+      case 'OVERDUE_RETURN':     return 'var(--red)';
+      case 'WARRANTY_EXPIRING':  return 'var(--blue)';
+      case 'METROLOGY_EXPIRING': return 'var(--blue)';
+      default:                   return 'var(--text-secondary)';
     }
   }
 }

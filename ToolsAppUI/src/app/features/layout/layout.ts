@@ -11,9 +11,11 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { TranslationService, Lang } from '../../core/services/translation.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 interface NavItem {
-  label: string;
+  labelKey: string;
   icon: string;
   path: string;
   adminOnly?: boolean;
@@ -25,7 +27,7 @@ interface NavItem {
     RouterOutlet, RouterLink, RouterLinkActive,
     MatSidenavModule, MatToolbarModule, MatListModule,
     MatIconModule, MatButtonModule, MatTooltipModule,
-    NgIf, UpperCasePipe,
+    NgIf, UpperCasePipe, TranslatePipe,
   ],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
@@ -33,26 +35,26 @@ interface NavItem {
 export class LayoutComponent implements OnDestroy {
   private readonly auth            = inject(AuthService);
   readonly theme                   = inject(ThemeService);
+  readonly ts                      = inject(TranslationService);
   private readonly bp              = inject(BreakpointObserver);
   private readonly bpSub: Subscription;
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard',   icon: 'dashboard',     path: '/dashboard' },
-    { label: 'Assets',      icon: 'construction',  path: '/assets' },
-    { label: 'Locations',   icon: 'location_on',   path: '/locations' },
-    { label: 'Transfers',   icon: 'swap_horiz',    path: '/transfers' },
-    { label: 'Maintenance', icon: 'build',         path: '/maintenance' },
-    { label: 'Alerts',      icon: 'notifications', path: '/alerts' },
-    { label: 'Users',       icon: 'people',        path: '/users', adminOnly: true },
+    { labelKey: 'nav.dashboard',   icon: 'dashboard',     path: '/dashboard' },
+    { labelKey: 'nav.assets',      icon: 'construction',  path: '/assets' },
+    { labelKey: 'nav.locations',   icon: 'location_on',   path: '/locations' },
+    { labelKey: 'nav.transfers',   icon: 'swap_horiz',    path: '/transfers' },
+    { labelKey: 'nav.maintenance', icon: 'build',         path: '/maintenance' },
+    { labelKey: 'nav.alerts',      icon: 'notifications', path: '/alerts' },
+    { labelKey: 'nav.users',       icon: 'people',        path: '/users', adminOnly: true },
   ];
 
-  // Bottom nav shows 5 primary items (no adminOnly ones to keep it clean)
   readonly bottomNavItems: NavItem[] = [
-    { label: 'Home',      icon: 'dashboard',    path: '/dashboard' },
-    { label: 'Assets',    icon: 'construction', path: '/assets' },
-    { label: 'Transfers', icon: 'swap_horiz',   path: '/transfers' },
-    { label: 'Maint.',    icon: 'build',        path: '/maintenance' },
-    { label: 'Alerts',    icon: 'notifications',path: '/alerts' },
+    { labelKey: 'nav.dashboard',   icon: 'dashboard',    path: '/dashboard' },
+    { labelKey: 'nav.assets',      icon: 'construction', path: '/assets' },
+    { labelKey: 'nav.transfers',   icon: 'swap_horiz',   path: '/transfers' },
+    { labelKey: 'nav.maintenance', icon: 'build',        path: '/maintenance' },
+    { labelKey: 'nav.alerts',      icon: 'notifications',path: '/alerts' },
   ];
 
   readonly user    = this.auth.currentUser;
@@ -60,6 +62,8 @@ export class LayoutComponent implements OnDestroy {
 
   isMobile     = signal(false);
   drawerOpened = signal(true);
+
+  readonly langs: Lang[] = ['ro', 'en', 'fr'];
 
   constructor() {
     this.bpSub = this.bp.observe('(max-width: 768px)').subscribe(state => {

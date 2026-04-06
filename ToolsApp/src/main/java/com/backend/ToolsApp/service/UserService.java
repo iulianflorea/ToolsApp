@@ -33,6 +33,18 @@ public class UserService {
         return userMapper.toResponseList(userRepository.findByTenantId(tenantId()));
     }
 
+    public UserResponse getById(Long id) {
+        User user = userRepository.findByIdAndTenantId(id, tenantId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+        return userMapper.toResponse(user);
+    }
+
+    public UserResponse getByQrCode(String qrCode) {
+        User user = userRepository.findByQrCodeAndTenantId(qrCode, tenantId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found for QR code"));
+        return userMapper.toResponse(user);
+    }
+
     @Transactional
     public UserResponse create(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -41,7 +53,9 @@ public class UserService {
         User user = userMapper.toEntity(request);
         user.setTenantId(tenantId());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return userMapper.toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        saved.setQrCode(String.valueOf(saved.getId()));
+        return userMapper.toResponse(userRepository.save(saved));
     }
 
     @Transactional

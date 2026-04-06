@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgIf, NgClass, SlicePipe } from '@angular/common';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { AssetService } from '../../../core/services/asset.service';
@@ -33,6 +34,7 @@ import { Asset, AssetStatus } from '../../../core/models/models';
     NgClass,
     SlicePipe,
     ZXingScannerModule,
+    TranslatePipe,
   ],
   templateUrl: './asset-list.html',
   styleUrl: './asset-list.scss',
@@ -43,7 +45,7 @@ export class AssetListComponent implements OnInit {
   scanning = signal(false);
   scanError = signal('');
 
-  displayedColumns = ['name', 'serialNumber', 'category', 'status', 'qrCode', 'actions'];
+  displayedColumns = ['image', 'name', 'serialNumber', 'category', 'status', 'qrCode', 'actions'];
   statuses: AssetStatus[] = ['AVAILABLE', 'IN_USE', 'IN_MAINTENANCE', 'RETIRED'];
 
   searchCtrl = new FormControl('');

@@ -41,6 +41,9 @@ public class AssetTransfer {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "indefinite_period", nullable = false)
+    private boolean indefinitePeriod = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransferStatus status = TransferStatus.ACTIVE;

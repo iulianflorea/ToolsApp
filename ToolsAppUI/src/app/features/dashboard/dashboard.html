@@ -1,9 +1,40 @@
 <div class="page-container">
   <div class="page-header">
     <div class="welcome-block">
-      <h1>Dashboard</h1>
-      <span class="welcome-sub" *ngIf="user()">Welcome back, {{ user()!.fullName }}</span>
+      <h1>{{ 'dash.title' | translate }}</h1>
+      <span class="welcome-sub" *ngIf="user()">{{ 'dash.welcome' | translate }} {{ user()!.fullName }}</span>
     </div>
+  </div>
+
+  <!-- ── Asset search bar ──────────────────────────────────────────────── -->
+  <div class="dash-search-wrap">
+    <mat-form-field appearance="outline" class="dash-search-field">
+      <mat-label>{{ 'dash.search' | translate }}</mat-label>
+      <input matInput [formControl]="searchCtrl" [matAutocomplete]="autoSearch"
+             [placeholder]="'dash.search' | translate" />
+      <mat-icon matSuffix>search</mat-icon>
+      <button matSuffix mat-icon-button type="button"
+              (click)="toggleDashScanner()"
+              [matTooltip]="'dash.scanQr' | translate">
+        <mat-icon [style.color]="scanningDash() ? 'var(--red)' : 'var(--blue)'">
+          {{ scanningDash() ? 'close' : 'qr_code_scanner' }}
+        </mat-icon>
+      </button>
+      <mat-autocomplete #autoSearch="matAutocomplete" [displayWith]="displayFn"
+                        (optionSelected)="onAssetSelected($event)">
+        @for (a of searchResults(); track a.id) {
+          <mat-option [value]="a">
+            <span>{{ a.name }}</span>
+            <span *ngIf="a.serialNumber" style="margin-left:8px;font-size:11px;color:#6E6E73">{{ a.serialNumber }}</span>
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <div *ngIf="scanningDash()" class="dash-scanner-panel">
+      <zxing-scanner [enable]="scanningDash()" (scanSuccess)="onDashScan($event)" (scanError)="onScanError()"></zxing-scanner>
+    </div>
+    <p *ngIf="scanError()" class="scan-error">{{ scanError() }}</p>
   </div>
 
   <div *ngIf="loading(); else content" class="loading-state">
@@ -12,35 +43,95 @@
 
   <ng-template #content>
     <div class="stats-grid" *ngIf="stats()">
-      <div class="stat-card primary">
+
+      <div class="stat-card primary" [class.active]="activeCard() === 'total'" (click)="toggleCard('total')">
         <div class="stat-icon"><mat-icon>inventory_2</mat-icon></div>
-        <span class="stat-label">Total Assets</span>
+        <span class="stat-label">{{ 'dash.total' | translate }}</span>
         <span class="stat-value">{{ stats()!.totalAssets }}</span>
+        <mat-icon class="expand-icon">{{ activeCard() === 'total' ? 'expand_less' : 'expand_more' }}</mat-icon>
       </div>
-      <div class="stat-card success">
+
+      <div class="stat-card success" [class.active]="activeCard() === 'available'" (click)="toggleCard('available')">
         <div class="stat-icon"><mat-icon>check_circle_outline</mat-icon></div>
-        <span class="stat-label">Available</span>
+        <span class="stat-label">{{ 'dash.available' | translate }}</span>
         <span class="stat-value">{{ stats()!.availableAssets }}</span>
+        <mat-icon class="expand-icon">{{ activeCard() === 'available' ? 'expand_less' : 'expand_more' }}</mat-icon>
       </div>
-      <div class="stat-card info">
+
+      <div class="stat-card info" [class.active]="activeCard() === 'inUse'" (click)="toggleCard('inUse')">
         <div class="stat-icon"><mat-icon>swap_horiz</mat-icon></div>
-        <span class="stat-label">In Use</span>
+        <span class="stat-label">{{ 'dash.inUse' | translate }}</span>
         <span class="stat-value">{{ stats()!.inUseAssets }}</span>
+        <mat-icon class="expand-icon">{{ activeCard() === 'inUse' ? 'expand_less' : 'expand_more' }}</mat-icon>
       </div>
-      <div class="stat-card warning">
+
+      <div class="stat-card warning" [class.active]="activeCard() === 'inMaintenance'" (click)="toggleCard('inMaintenance')">
         <div class="stat-icon"><mat-icon>build_circle</mat-icon></div>
-        <span class="stat-label">In Maintenance</span>
+        <span class="stat-label">{{ 'dash.inMaintenance' | translate }}</span>
         <span class="stat-value">{{ stats()!.inMaintenanceAssets }}</span>
+        <mat-icon class="expand-icon">{{ activeCard() === 'inMaintenance' ? 'expand_less' : 'expand_more' }}</mat-icon>
       </div>
+
       <div class="stat-card danger">
         <div class="stat-icon"><mat-icon>schedule</mat-icon></div>
-        <span class="stat-label">Overdue Returns</span>
+        <span class="stat-label">{{ 'dash.overdue' | translate }}</span>
         <span class="stat-value">{{ stats()!.overdueTransfers }}</span>
       </div>
+
       <div class="stat-card warning">
         <div class="stat-icon"><mat-icon>pending_actions</mat-icon></div>
-        <span class="stat-label">Pending Maintenance</span>
+        <span class="stat-label">{{ 'dash.pending' | translate }}</span>
         <span class="stat-value">{{ stats()!.pendingMaintenance }}</span>
+      </div>
+
+    </div>
+
+    <!-- Category breakdown sub-cards -->
+    <div class="category-breakdown" *ngIf="activeCard() && categoryStats().length > 0">
+      <h3 class="breakdown-title">
+        <mat-icon>category</mat-icon> {{ 'dash.details' | translate }}
+      </h3>
+      <div class="category-grid">
+        <div class="category-card"
+             *ngFor="let row of categoryStats()"
+             [class.active]="activeCategoryRow() === row.category"
+             [class.disabled]="categoryValue(row, activeCard()!) === 0"
+             (click)="selectCategory(row)">
+          <div class="category-name">{{ row.category }}</div>
+          <div class="category-count">{{ categoryValue(row, activeCard()!) }}</div>
+          <mat-icon class="cat-expand-icon">
+            {{ activeCategoryRow() === row.category ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </div>
+      </div>
+
+      <!-- Category drill-down panel -->
+      <div class="category-drilldown" *ngIf="activeCategoryRow()">
+        <div *ngIf="loadingCategory()" class="drilldown-loading">
+          <mat-spinner diameter="28"></mat-spinner>
+        </div>
+        <table *ngIf="!loadingCategory() && categoryAssets().length > 0" class="drilldown-table">
+          <thead>
+            <tr>
+              <th>{{ 'asset.name' | translate }}</th>
+              <th>{{ 'asset.serial' | translate }}</th>
+              <th>{{ 'asset.status' | translate }}</th>
+              <th>{{ 'tr.toLoc' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of categoryAssets()" class="drilldown-row" [routerLink]="['/assets', a.id]">
+              <td>{{ a.name }}</td>
+              <td class="muted">{{ a.serialNumber || '—' }}</td>
+              <td><span class="status-badge" [attr.data-status]="a.status">{{ a.status }}</span></td>
+              <td class="muted">{{ a.currentLocationName || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="!loadingCategory() && categoryAssets().length === 0" class="drilldown-empty">
+          <mat-icon>search_off</mat-icon>
+          <span>{{ 'common.noData' | translate }}</span>
+        </div>
       </div>
     </div>
 
@@ -48,12 +139,10 @@
       <mat-card class="widget">
         <mat-card-header>
           <div class="widget-title">
-            <div class="widget-icon alerts-icon">
-              <mat-icon>notifications</mat-icon>
-            </div>
-            <span>Recent Alerts</span>
+            <div class="widget-icon alerts-icon"><mat-icon>notifications</mat-icon></div>
+            <span>{{ 'dash.recentAlerts' | translate }}</span>
           </div>
-          <a mat-button color="primary" routerLink="/alerts" class="view-all-btn">View All</a>
+          <a mat-button color="primary" routerLink="/alerts" class="view-all-btn">{{ 'dash.viewAll' | translate }}</a>
         </mat-card-header>
         <mat-card-content>
           <mat-list *ngIf="recentAlerts().length > 0; else noAlerts">
@@ -66,10 +155,7 @@
             </mat-list-item>
           </mat-list>
           <ng-template #noAlerts>
-            <div class="empty-state">
-              <mat-icon>notifications_none</mat-icon>
-              <span>No unread alerts</span>
-            </div>
+            <div class="empty-state"><mat-icon>notifications_none</mat-icon><span>{{ 'dash.noAlerts' | translate }}</span></div>
           </ng-template>
         </mat-card-content>
       </mat-card>
@@ -77,12 +163,10 @@
       <mat-card class="widget">
         <mat-card-header>
           <div class="widget-title">
-            <div class="widget-icon transfers-icon">
-              <mat-icon>swap_horiz</mat-icon>
-            </div>
-            <span>Active Transfers</span>
+            <div class="widget-icon transfers-icon"><mat-icon>swap_horiz</mat-icon></div>
+            <span>{{ 'dash.activeTransfers' | translate }}</span>
           </div>
-          <a mat-button color="primary" routerLink="/transfers" class="view-all-btn">View All</a>
+          <a mat-button color="primary" routerLink="/transfers" class="view-all-btn">{{ 'dash.viewAll' | translate }}</a>
         </mat-card-header>
         <mat-card-content>
           <mat-list *ngIf="recentTransfers().length > 0; else noTransfers">
@@ -96,10 +180,7 @@
             </mat-list-item>
           </mat-list>
           <ng-template #noTransfers>
-            <div class="empty-state">
-              <mat-icon>swap_horiz</mat-icon>
-              <span>No active transfers</span>
-            </div>
+            <div class="empty-state"><mat-icon>swap_horiz</mat-icon><span>{{ 'dash.noTransfers' | translate }}</span></div>
           </ng-template>
         </mat-card-content>
       </mat-card>

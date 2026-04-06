@@ -73,7 +73,9 @@ public class DataInitializer implements CommandLineRunner {
         user.setPassword(passwordEncoder.encode(password));
         user.setFullName(fullName);
         user.setRole(role);
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        saved.setQrCode(String.valueOf(saved.getId()));
+        userRepository.save(saved);
     }
 
     private Location createLocation(Long tenantId, String name, String address, LocationType type) {
@@ -95,6 +97,8 @@ public class DataInitializer implements CommandLineRunner {
         asset.setStatus(status);
         asset.setPurchaseDate(LocalDate.parse(purchaseDate));
         asset.setPurchasePrice(BigDecimal.valueOf(price));
-        assetRepository.save(asset);
+        Asset saved = assetRepository.save(asset);
+        saved.setQrCode(String.valueOf(saved.getId()));
+        assetRepository.save(saved);
     }
 }

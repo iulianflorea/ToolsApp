@@ -13,5 +13,6 @@ public class TransferRequest {
     private Long toLocationId;
     private Long assignedToUserId;
     private LocalDate returnDate;
+    private boolean indefinitePeriod;
     private String notes;
 }

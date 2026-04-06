@@ -20,4 +20,8 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     @Modifying
     @Query("UPDATE Alert a SET a.isRead = true WHERE a.tenantId = :tenantId")
     void markAllReadByTenantId(@Param("tenantId") Long tenantId);
+
+    void deleteByAssetId(Long assetId);
+
+    boolean existsByAssetIdAndMessage(Long assetId, String message);
 }

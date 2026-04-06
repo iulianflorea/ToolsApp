@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "assets")
@@ -53,14 +52,17 @@ public class Asset {
     @Column(name = "warranty_months")
     private Integer warrantyMonths;
 
+    @Column(name = "metrology_date")
+    private LocalDate metrologyDate;
+
+    @Column(name = "metrology_expiry_date")
+    private LocalDate metrologyExpiryDate;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (qrCode == null || qrCode.isBlank()) {
-            qrCode = UUID.randomUUID().toString();
-        }
     }
 }

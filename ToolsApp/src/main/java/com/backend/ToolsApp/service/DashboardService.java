@@ -1,5 +1,6 @@
 package com.backend.ToolsApp.service;
 
+import com.backend.ToolsApp.dto.dashboard.CategoryStats;
 import com.backend.ToolsApp.dto.dashboard.DashboardStats;
 import com.backend.ToolsApp.enums.AssetStatus;
 import com.backend.ToolsApp.enums.MaintenanceStatus;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,5 +42,19 @@ public class DashboardService {
                 .pendingMaintenance(maintenanceRepository.countByTenantIdAndStatus(tid, MaintenanceStatus.PENDING))
                 .unreadAlerts(alertRepository.countByTenantIdAndIsReadFalse(tid))
                 .build();
+    }
+
+    public List<CategoryStats> getCategoryStats() {
+        Long tid = ((SecurityUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getTenantId();
+        return assetRepository.countByTenantIdGroupByCategory(tid).stream()
+                .map(row -> new CategoryStats(
+                        row[0] != null ? (String) row[0] : "Fără categorie",
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).longValue(),
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).longValue(),
+                        ((Number) row[5]).longValue()
+                ))
+                .toList();
     }
 }

@@ -9,7 +9,34 @@
   <mat-card style="max-width: 700px">
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <!-- ── Image upload ── -->
+        <div class="image-upload-area">
+          <div class="image-preview" [class.has-image]="imagePreview()">
+            <img *ngIf="imagePreview()" [src]="imagePreview()" alt="Asset photo" />
+            <div *ngIf="!imagePreview()" class="image-placeholder">
+              <mat-icon>photo_camera</mat-icon>
+              <span>Adaugă fotografie</span>
+            </div>
+            <div *ngIf="uploading()" class="upload-overlay">
+              <mat-spinner diameter="32"></mat-spinner>
+            </div>
+          </div>
+          <div class="image-actions">
+            <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="uploading()">
+              <mat-icon>upload</mat-icon>
+              {{ imagePreview() ? 'Schimbă poza' : 'Alege poza' }}
+            </button>
+            <button mat-icon-button type="button" color="warn" *ngIf="imagePreview()" (click)="removeImage()" matTooltip="Șterge poza">
+              <mat-icon>delete</mat-icon>
+            </button>
+            <input #fileInput type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)" />
+          </div>
+        </div>
+
         <div class="form-grid">
+
+          <!-- Name with autocomplete -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Asset Name *</mat-label>
             <input matInput formControlName="name"
@@ -19,9 +46,7 @@
               @for (asset of filteredAssets(); track asset.id) {
                 <mat-option [value]="asset.name">
                   <span>{{ asset.name }}</span>
-                  @if (asset.category) {
-                    <span class="autocomplete-category">{{ asset.category }}</span>
-                  }
+                  @if (asset.category) { <span class="autocomplete-category">{{ asset.category }}</span> }
                 </mat-option>
               }
             </mat-autocomplete>
@@ -32,14 +57,19 @@
             <input matInput formControlName="serialNumber" />
           </mat-form-field>
 
+          <!-- Category — free-text autocomplete, Enter to add new -->
           <mat-form-field appearance="outline">
             <mat-label>Category</mat-label>
-            <mat-select formControlName="category">
-              <mat-option value="">— None —</mat-option>
-              @for (c of categories; track c) {
+            <input matInput [formControl]="categoryCtrl"
+                   [matAutocomplete]="autoCat"
+                   placeholder="Selectează sau scrie o categorie nouă"
+                   (keydown)="onCategoryKeydown($event)" />
+            <mat-hint>Apasă Enter pentru a adăuga o categorie nouă</mat-hint>
+            <mat-autocomplete #autoCat="matAutocomplete">
+              @for (c of filteredCategories(); track c) {
                 <mat-option [value]="c">{{ c }}</mat-option>
               }
-            </mat-select>
+            </mat-autocomplete>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -49,6 +79,23 @@
                 <mat-option [value]="s">{{ s.replace('_', ' ') }}</mat-option>
               }
             </mat-select>
+          </mat-form-field>
+
+          <!-- Location — auto-sets status IN_USE -->
+          <mat-form-field appearance="outline">
+            <mat-label>Locație</mat-label>
+            <input matInput [formControl]="locationCtrl"
+                   [matAutocomplete]="autoLoc"
+                   placeholder="Selectează locația" />
+            <button *ngIf="form.value.locationId" mat-icon-button matSuffix type="button" (click)="clearLocation()" matTooltip="Elimină locația">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-hint *ngIf="form.value.locationId">Status setat automat pe IN USE</mat-hint>
+            <mat-autocomplete #autoLoc="matAutocomplete" (optionSelected)="onLocationSelected($event)">
+              @for (l of filteredLocations(); track l.id) {
+                <mat-option [value]="l">{{ l.name }}</mat-option>
+              }
+            </mat-autocomplete>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -61,7 +108,7 @@
           <mat-form-field appearance="outline">
             <mat-label>Purchase Price</mat-label>
             <input matInput type="number" formControlName="purchasePrice" />
-            <span matTextPrefix>$&nbsp;</span>
+            <span matTextSuffix>&nbsp;RON</span>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -70,17 +117,33 @@
             <mat-icon matSuffix>verified_user</mat-icon>
           </mat-form-field>
 
+          <!-- Metrology -->
+          <mat-form-field appearance="outline">
+            <mat-label>Data metrologizare</mat-label>
+            <input matInput [matDatepicker]="pickerMet" formControlName="metrologyDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerMet"></mat-datepicker-toggle>
+            <mat-datepicker #pickerMet></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Expirare metrologizare</mat-label>
+            <input matInput [matDatepicker]="pickerMetExp" formControlName="metrologyExpiryDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="pickerMetExp"></mat-datepicker-toggle>
+            <mat-datepicker #pickerMetExp></mat-datepicker>
+          </mat-form-field>
+
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Notes</mat-label>
             <textarea matInput formControlName="notes" rows="3"></textarea>
           </mat-form-field>
+
         </div>
 
         <div *ngIf="error" class="error-message">{{ error }}</div>
 
         <div class="form-actions">
           <a mat-button routerLink="/assets">Cancel</a>
-          <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loading || uploading() || form.invalid">
             {{ loading ? 'Saving…' : (isEdit ? 'Update Asset' : 'Create Asset') }}
           </button>
         </div>

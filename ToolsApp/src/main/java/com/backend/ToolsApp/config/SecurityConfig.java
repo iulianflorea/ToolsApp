@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -35,6 +36,8 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/qr/**").authenticated()
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

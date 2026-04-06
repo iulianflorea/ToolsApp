@@ -30,7 +30,7 @@
           (click)="isMobile() && drawerOpened.set(false)"
         >
           <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
+          <span matListItemTitle>{{ item.labelKey | translate }}</span>
         </a>
       }
     </mat-nav-list>
@@ -38,7 +38,7 @@
     <div class="sidenav-footer">
       <button mat-button class="logout-btn" (click)="logout()">
         <mat-icon>logout</mat-icon>
-        Sign Out
+        {{ 'layout.signOut' | translate }}
       </button>
     </div>
   </mat-drawer>
@@ -64,11 +64,22 @@
 
       <span class="toolbar-spacer"></span>
 
+      <!-- Language switcher -->
+      <div class="lang-switcher">
+        @for (lang of langs; track lang) {
+          <button
+            class="lang-btn"
+            [class.active]="ts.currentLang() === lang"
+            (click)="ts.setLang(lang)"
+          >{{ lang | uppercase }}</button>
+        }
+      </div>
+
       <!-- Dark mode toggle -->
       <button
         mat-icon-button
         (click)="theme.toggle()"
-        [matTooltip]="theme.isDark() ? 'Light mode' : 'Dark mode'"
+        [matTooltip]="theme.isDark() ? ('layout.lightMode' | translate) : ('layout.darkMode' | translate)"
       >
         <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
@@ -98,7 +109,7 @@
           routerLinkActive="active"
         >
           <mat-icon>{{ item.icon }}</mat-icon>
-          <span>{{ item.label }}</span>
+          <span>{{ item.labelKey | translate }}</span>
         </a>
       }
     </nav>

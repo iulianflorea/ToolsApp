@@ -21,6 +21,14 @@ public interface AssetRepository extends JpaRepository<Asset, Long> {
 
     long countByTenantId(Long tenantId);
 
+    @Query("SELECT a.category, COUNT(a), " +
+           "SUM(CASE WHEN a.status = 'AVAILABLE' THEN 1 ELSE 0 END), " +
+           "SUM(CASE WHEN a.status = 'IN_USE' THEN 1 ELSE 0 END), " +
+           "SUM(CASE WHEN a.status = 'IN_MAINTENANCE' THEN 1 ELSE 0 END), " +
+           "SUM(CASE WHEN a.status = 'RETIRED' THEN 1 ELSE 0 END) " +
+           "FROM Asset a WHERE a.tenantId = :tenantId GROUP BY a.category")
+    List<Object[]> countByTenantIdGroupByCategory(@Param("tenantId") Long tenantId);
+
     @Query("SELECT a FROM Asset a WHERE a.tenantId = :tenantId " +
            "AND (:status IS NULL OR a.status = :status) " +
            "AND (:category IS NULL OR a.category = :category) " +

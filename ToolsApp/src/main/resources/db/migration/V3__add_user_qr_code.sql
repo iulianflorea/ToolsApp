@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN qr_code VARCHAR(36) UNIQUE;
+UPDATE users SET qr_code = UUID() WHERE qr_code IS NULL;

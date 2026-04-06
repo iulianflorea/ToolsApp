@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static java.lang.String.format;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -55,6 +57,62 @@ public class AlertScheduler {
         if (!upcoming.isEmpty()) {
             log.info("Created {} maintenance-due alerts", upcoming.size());
         }
+    }
+
+    private static final int[] WARNING_DAYS = {30, 14, 7, 1};
+
+    @Scheduled(cron = "0 0 8 * * *")
+    @Transactional
+    public void checkExpiringDates() {
+        LocalDate today = LocalDate.now();
+        List<Asset> assets = assetRepository.findAll();
+        int created = 0;
+
+        for (Asset asset : assets) {
+
+            // ── Garanție ──────────────────────────────────────────────────────
+            if (asset.getPurchaseDate() != null && asset.getWarrantyMonths() != null) {
+                LocalDate warrantyExpiry = asset.getPurchaseDate().plusMonths(asset.getWarrantyMonths());
+                for (int days : WARNING_DAYS) {
+                    if (today.plusDays(days).equals(warrantyExpiry)) {
+                        String msg = format("Garanția uneltei '%s' expiră pe %s (în %d %s)",
+                                asset.getName(), warrantyExpiry, days, days == 1 ? "zi" : "zile");
+                        if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                            alertRepository.save(buildAlert(asset, AlertType.WARRANTY_EXPIRING, msg));
+                            created++;
+                        }
+                    }
+                }
+            }
+
+            // ── Metrologie ────────────────────────────────────────────────────
+            if (asset.getMetrologyExpiryDate() != null) {
+                LocalDate metrologyExpiry = asset.getMetrologyExpiryDate();
+                for (int days : WARNING_DAYS) {
+                    if (today.plusDays(days).equals(metrologyExpiry)) {
+                        String msg = format("Metrologia uneltei '%s' expiră pe %s (în %d %s)",
+                                asset.getName(), metrologyExpiry, days, days == 1 ? "zi" : "zile");
+                        if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                            alertRepository.save(buildAlert(asset, AlertType.METROLOGY_EXPIRING, msg));
+                            created++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (created > 0) {
+            log.info("Created {} warranty/metrology expiry alerts", created);
+        }
+    }
+
+    private Alert buildAlert(Asset asset, AlertType type, String message) {
+        Alert alert = new Alert();
+        alert.setTenantId(asset.getTenantId());
+        alert.setAssetId(asset.getId());
+        alert.setType(type);
+        alert.setMessage(message);
+        return alert;
     }
 
     @Scheduled(cron = "0 0 8 * * *")

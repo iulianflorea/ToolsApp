@@ -1,12 +1,91 @@
 <div class="page-container" *ngIf="asset()">
+
+  <!-- ── Page header ── -->
   <div class="page-header">
     <div>
       <a mat-icon-button routerLink="/assets"><mat-icon>arrow_back</mat-icon></a>
       <h1 style="display:inline;margin-left:8px">{{ asset()!.name }}</h1>
     </div>
-    <a mat-raised-button color="primary" [routerLink]="['/assets', asset()!.id, 'edit']">
-      <mat-icon>edit</mat-icon> Edit
-    </a>
+    <div style="display:flex;gap:8px">
+      <button mat-stroked-button color="primary" (click)="openTransferForm()" matTooltip="Transfer rapid">
+        <mat-icon>swap_horiz</mat-icon> Transfer
+      </button>
+      <button mat-icon-button color="warn" (click)="deleteAsset()" matTooltip="Șterge unealta">
+        <mat-icon>delete</mat-icon>
+      </button>
+      <a mat-raised-button color="primary" [routerLink]="['/assets', asset()!.id, 'edit']">
+        <mat-icon>edit</mat-icon> Edit
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Quick Transfer Form ── -->
+  <mat-card *ngIf="showTransferForm()" class="transfer-form-card">
+    <mat-card-header><mat-card-title>Transfer rapid — {{ asset()!.name }}</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="transferForm" (ngSubmit)="submitTransfer()">
+        <div class="quick-transfer-grid">
+
+          <!-- To Location -->
+          <mat-form-field appearance="outline">
+            <mat-label>La locație</mat-label>
+            <input matInput [formControl]="toLocSearch" [matAutocomplete]="autoToLoc" placeholder="Caută locație..." />
+            <mat-autocomplete #autoToLoc="matAutocomplete" (optionSelected)="onToLocSelected($event)">
+              @for (l of filteredLocs(); track l.id) { <mat-option [value]="l">{{ l.name }}</mat-option> }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Assigned To User -->
+          <mat-form-field appearance="outline">
+            <mat-label>Atribuit la (utilizator)</mat-label>
+            <input matInput [formControl]="userSearch" [matAutocomplete]="autoUser" placeholder="Caută utilizator..." />
+            <mat-autocomplete #autoUser="matAutocomplete" (optionSelected)="onUserSelected($event)">
+              @for (u of filteredUsers(); track u.id) { <mat-option [value]="u">{{ u.fullName }}</mat-option> }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Return date + indefinite -->
+          <div class="return-date-wrap">
+            <mat-form-field appearance="outline" style="flex:1">
+              <mat-label>Data returnării estimate</mat-label>
+              <input matInput [matDatepicker]="dp" formControlName="returnDate"
+                     [disabled]="!!indefinitePeriod.value" />
+              <mat-datepicker-toggle matIconSuffix [for]="dp"></mat-datepicker-toggle>
+              <mat-datepicker #dp></mat-datepicker>
+            </mat-form-field>
+            <label class="indefinite-label">
+              <input type="checkbox" [formControl]="indefinitePeriod" />
+              Perioadă nedeterminată
+            </label>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Notițe</mat-label>
+            <input matInput formControlName="notes" />
+          </mat-form-field>
+        </div>
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancelTransferForm()">Anulează</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="savingTransfer()">
+            <mat-icon>swap_horiz</mat-icon> Transferă
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ── Hero image ── -->
+  <div class="asset-hero" (click)="triggerPhotoUpload()" [class.has-photo]="asset()!.imageUrl">
+    <img *ngIf="asset()!.imageUrl" [src]="asset()!.imageUrl" [alt]="asset()!.name" class="hero-img" />
+    <div *ngIf="!asset()!.imageUrl" class="hero-placeholder">
+      <mat-icon>photo_camera</mat-icon>
+      <span>Adaugă fotografie</span>
+    </div>
+    <div class="hero-upload-btn" [class.uploading]="uploadingPhoto()">
+      <mat-spinner *ngIf="uploadingPhoto()" diameter="22"></mat-spinner>
+      <mat-icon *ngIf="!uploadingPhoto()">{{ asset()!.imageUrl ? 'photo_camera' : 'add_a_photo' }}</mat-icon>
+    </div>
+    <input #photoInput type="file" accept="image/*" style="display:none" (change)="onPhotoSelected($event)" />
   </div>
 
   <mat-tab-group>
@@ -37,6 +116,22 @@
                 </ng-container>
                 <ng-template #noWarranty>—</ng-template>
               </dd>
+              <dt>Metrologizare</dt>
+              <dd>{{ asset()!.metrologyDate ? (asset()!.metrologyDate | date:'dd MMM yyyy') : '—' }}</dd>
+              <dt>Expiră metrologizare</dt>
+              <dd>
+                <ng-container *ngIf="asset()!.metrologyExpiryDate; else noMetExp">
+                  <strong [class.warranty-expired]="isMetrologyExpired(asset()!.metrologyExpiryDate!)"
+                          [class.warranty-active]="!isMetrologyExpired(asset()!.metrologyExpiryDate!)">
+                    {{ asset()!.metrologyExpiryDate | date:'dd MMM yyyy' }}
+                  </strong>
+                  <span *ngIf="isMetrologyExpired(asset()!.metrologyExpiryDate!)" class="warranty-expired-badge">Expirată</span>
+                  <span *ngIf="!isMetrologyExpired(asset()!.metrologyExpiryDate!)" class="warranty-active-badge">Activă</span>
+                </ng-container>
+                <ng-template #noMetExp>—</ng-template>
+              </dd>
+              <dt *ngIf="asset()!.status === 'IN_USE'"><mat-icon style="font-size:16px;vertical-align:middle">location_on</mat-icon> Locație curentă</dt>
+              <dd *ngIf="asset()!.status === 'IN_USE'">{{ asset()!.currentLocationName || '—' }}</dd>
               <dt>Notes</dt>   <dd>{{ asset()!.notes || '—' }}</dd>
               <dt>Created</dt> <dd>{{ asset()!.createdAt | date:'medium' }}</dd>
             </dl>
@@ -48,6 +143,52 @@
           <mat-card-content class="qr-content">
             <canvas #qrCanvas></canvas>
             <code class="qr-code-text">{{ asset()!.qrCode }}</code>
+
+            <div class="print-bar">
+              <mat-form-field appearance="outline" class="size-picker">
+                <mat-label>Dimensiune</mat-label>
+                <mat-select [value]="selectedPrintSize()" (selectionChange)="selectedPrintSize.set($event.value)">
+                  @for (s of printSizes; track s.mm) {
+                    <mat-option [value]="s">{{ s.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <button mat-raised-button color="primary" (click)="printQr()">
+                <mat-icon>print</mat-icon> Printează
+              </button>
+            </div>
+
+            <!-- Bluetooth -->
+            <div class="bt-bar">
+              <ng-container *ngIf="bt.supported; else btNotSupported">
+                <ng-container *ngIf="!bt.connected()">
+                  <button mat-stroked-button (click)="bt.connect()">
+                    <mat-icon>bluetooth</mat-icon> Conectează imprimantă BT
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="bt.connected()">
+                  <div class="bt-status">
+                    <mat-icon style="color:var(--blue)">bluetooth_connected</mat-icon>
+                    <span>{{ bt.deviceName() }}</span>
+                    <button mat-icon-button (click)="bt.disconnect()" matTooltip="Deconectează">
+                      <mat-icon>bluetooth_disabled</mat-icon>
+                    </button>
+                  </div>
+                  <button mat-raised-button color="accent" (click)="printBt()" [disabled]="bt.busy()">
+                    <mat-icon>{{ bt.busy() ? 'hourglass_empty' : 'print' }}</mat-icon>
+                    {{ bt.busy() ? 'Se trimite…' : 'Print BT' }}
+                  </button>
+                </ng-container>
+                <p *ngIf="bt.error()" class="bt-error">{{ bt.error() }}</p>
+              </ng-container>
+              <ng-template #btNotSupported>
+                <p class="bt-unsupported">
+                  <mat-icon>bluetooth_disabled</mat-icon>
+                  Bluetooth nu e suportat în acest browser.<br>
+                  <small>Folosește <strong>Chrome</strong> sau <strong>Edge</strong> pe desktop/Android.</small>
+                </p>
+              </ng-template>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>

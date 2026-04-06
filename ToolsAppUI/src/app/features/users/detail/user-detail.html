@@ -1,0 +1,142 @@
+<div class="page-container" *ngIf="user()">
+
+  <!-- ── Header ── -->
+  <div class="page-header">
+    <div>
+      <a mat-icon-button routerLink="/users"><mat-icon>arrow_back</mat-icon></a>
+      <h1 style="display:inline;margin-left:8px">{{ user()!.fullName }}</h1>
+    </div>
+    <div style="display:flex;gap:8px" *ngIf="!editing()">
+      <button mat-icon-button color="warn" (click)="deactivate()" matTooltip="Dezactivează">
+        <mat-icon>block</mat-icon>
+      </button>
+      <button mat-raised-button color="primary" (click)="startEdit()">
+        <mat-icon>edit</mat-icon> Edit
+      </button>
+    </div>
+    <div style="display:flex;gap:8px" *ngIf="editing()">
+      <button mat-button (click)="cancelEdit()">Anulează</button>
+      <button mat-raised-button color="primary" (click)="save()" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Se salvează…' : 'Salvează' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="profile-grid">
+
+    <!-- ── Info / Edit card ── -->
+    <mat-card class="info-card">
+      <mat-card-content>
+
+        <!-- Avatar -->
+        <div class="avatar-section">
+          <div class="avatar-circle" [ngClass]="user()!.role.toLowerCase()">
+            {{ user()!.fullName[0] | uppercase }}
+          </div>
+          <div class="avatar-info">
+            <div class="avatar-name">{{ user()!.fullName }}</div>
+            <span class="role-badge" [ngClass]="user()!.role.toLowerCase()">{{ user()!.role }}</span>
+          </div>
+        </div>
+
+        <!-- View mode -->
+        <dl class="info-list" *ngIf="!editing()">
+          <dt><mat-icon>email</mat-icon> Email</dt>
+          <dd>{{ user()!.email }}</dd>
+
+          <dt><mat-icon>verified_user</mat-icon> Status</dt>
+          <dd>
+            <span class="status-chip" [class.active]="user()!.active" [class.inactive]="!user()!.active">
+              <mat-icon>{{ user()!.active ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ user()!.active ? 'Activ' : 'Inactiv' }}
+            </span>
+          </dd>
+
+          <dt><mat-icon>calendar_today</mat-icon> Creat</dt>
+          <dd>{{ user()!.createdAt | date:'dd MMM yyyy, HH:mm' }}</dd>
+        </dl>
+
+        <!-- Edit mode -->
+        <form [formGroup]="form" (ngSubmit)="save()" class="edit-form" *ngIf="editing()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name *</mat-label>
+            <input matInput formControlName="fullName" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Role *</mat-label>
+            <mat-select formControlName="role">
+              @for (r of roles; track r) { <mat-option [value]="r">{{ r }}</mat-option> }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>New Password (leave blank to keep)</mat-label>
+            <input matInput type="password" formControlName="password" autocomplete="new-password" />
+          </mat-form-field>
+        </form>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ── QR card ── -->
+    <mat-card class="qr-card">
+      <mat-card-header>
+        <mat-card-title>QR Code</mat-card-title>
+        <mat-card-subtitle>Scanează pentru identificare rapidă</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="qr-content">
+        <canvas #qrCanvas></canvas>
+        <div class="qr-label">{{ user()!.fullName }}</div>
+        <code class="qr-code-text">{{ user()!.qrCode }}</code>
+
+        <div class="print-bar">
+          <mat-form-field appearance="outline" class="size-picker">
+            <mat-label>Dimensiune</mat-label>
+            <mat-select [value]="selectedPrintSize()" (selectionChange)="selectedPrintSize.set($event.value)">
+              @for (s of printSizes; track s.mm) {
+                <mat-option [value]="s">{{ s.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="printQr()">
+            <mat-icon>print</mat-icon> Printează
+          </button>
+        </div>
+
+        <!-- Bluetooth -->
+        <div class="bt-bar">
+          <ng-container *ngIf="bt.supported; else btNotSupported">
+            <!-- Not connected -->
+            <ng-container *ngIf="!bt.connected()">
+              <button mat-stroked-button (click)="bt.connect()">
+                <mat-icon>bluetooth</mat-icon> Conectează imprimantă BT
+              </button>
+            </ng-container>
+            <!-- Connected -->
+            <ng-container *ngIf="bt.connected()">
+              <div class="bt-status">
+                <mat-icon style="color:var(--blue)">bluetooth_connected</mat-icon>
+                <span>{{ bt.deviceName() }}</span>
+                <button mat-icon-button (click)="bt.disconnect()" matTooltip="Deconectează">
+                  <mat-icon>bluetooth_disabled</mat-icon>
+                </button>
+              </div>
+              <button mat-raised-button color="accent" (click)="printBt()" [disabled]="bt.busy()">
+                <mat-icon>{{ bt.busy() ? 'hourglass_empty' : 'print' }}</mat-icon>
+                {{ bt.busy() ? 'Se trimite…' : 'Print BT' }}
+              </button>
+            </ng-container>
+            <p *ngIf="bt.error()" class="bt-error">{{ bt.error() }}</p>
+          </ng-container>
+          <ng-template #btNotSupported>
+            <p class="bt-unsupported">
+              <mat-icon>bluetooth_disabled</mat-icon>
+              Bluetooth nu e suportat în acest browser.<br>
+              <small>Folosește <strong>Chrome</strong> sau <strong>Edge</strong> pe desktop/Android.</small>
+            </p>
+          </ng-template>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>
