@@ -89,11 +89,6 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let a" class="mat-column-actions">
-              <div class="action-buttons">
-                <a mat-icon-button [routerLink]="['/assets', a.id]" matTooltip="View"><mat-icon>visibility</mat-icon></a>
-                <a mat-icon-button [routerLink]="['/assets', a.id, 'edit']" matTooltip="Edit"><mat-icon>edit</mat-icon></a>
-                <button mat-icon-button color="warn" (click)="delete(a.id)" matTooltip="Delete"><mat-icon>delete</mat-icon></button>
-              </div>
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

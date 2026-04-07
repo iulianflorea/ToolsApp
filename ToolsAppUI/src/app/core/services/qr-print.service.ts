@@ -30,7 +30,7 @@ export class QrPrintService {
       errorCorrectionLevel: 'M',
     });
 
-    const pageH = sizeMm + 14; // label text below QR
+    const pageH = sizeMm + 20; // name + qr code text below QR
 
     const html = `<!DOCTYPE html>
 <html>
@@ -51,11 +51,15 @@ export class QrPrintService {
     img  { width: ${sizeMm - 2}mm; height: ${sizeMm - 2}mm; display: block; }
     .lbl { font-size: 7pt; text-align: center; margin-top: 1.5mm;
            max-width: ${sizeMm - 2}mm; word-break: break-word; line-height: 1.3; }
+    .lbl-id { font-size: 6pt; text-align: center; margin-top: 1mm;
+              max-width: ${sizeMm - 2}mm; word-break: break-all; line-height: 1.2;
+              color: #555; font-family: monospace; }
   </style>
 </head>
 <body>
   <img src="${dataUrl}" alt="QR"/>
   <div class="lbl">${name}</div>
+  <div class="lbl-id">${code}</div>
   <script>
     window.onload = function() {
       window.print();
