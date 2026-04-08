@@ -120,6 +120,7 @@
       </button>
     </div>
 
+    <div class="list-scroll">
     <!-- ── DESKTOP: table ─────────────────────────────────────────────── -->
     <ng-container *ngIf="!screen.isMobile()">
       <table mat-table [dataSource]="transfers()">
@@ -216,5 +217,6 @@
     </ng-container>
 
     <p *ngIf="transfers().length === 0" class="empty-state">{{ 'tr.noResults' | translate }}</p>
+    </div>
   </div>
 </div>

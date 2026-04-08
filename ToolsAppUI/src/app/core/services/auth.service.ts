@@ -12,7 +12,12 @@ export class AuthService {
 
   readonly currentUser = signal<AuthResponse | null>(this.loadUser());
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) {
+    // La inițializare verifică dacă token-ul existent e expirat
+    if (this.getToken() && this.isTokenExpired(this.getToken()!)) {
+      this.logout();
+    }
+  }
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API}/login`, request).pipe(
@@ -38,7 +43,18 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token || this.isTokenExpired(token)) return false;
+    return true;
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
   }
 
   hasRole(role: string): boolean {

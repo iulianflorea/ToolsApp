@@ -51,97 +51,99 @@
       </mat-form-field>
     </div>
 
-    <!-- Scanner -->
-    <div *ngIf="scanning()" class="scanner-panel">
-      <zxing-scanner [enable]="scanning()" (scanSuccess)="onScanSuccess($event)" (scanError)="onScanError($event)"></zxing-scanner>
-      <p class="scanner-hint">Point the camera at a barcode or QR code</p>
-    </div>
-    <p *ngIf="scanError()" class="scan-error">{{ scanError() }}</p>
+    <div class="list-scroll">
+      <!-- Scanner -->
+      <div *ngIf="scanning()" class="scanner-panel">
+        <zxing-scanner [enable]="scanning()" (scanSuccess)="onScanSuccess($event)" (scanError)="onScanError($event)"></zxing-scanner>
+        <p class="scanner-hint">Point the camera at a barcode or QR code</p>
+      </div>
+      <p *ngIf="scanError()" class="scan-error">{{ scanError() }}</p>
 
-    <!-- Loading -->
-    <div *ngIf="loading()" style="text-align:center;padding:32px 16px">
-      <mat-spinner diameter="40" style="margin:0 auto"></mat-spinner>
-    </div>
+      <!-- Loading -->
+      <div *ngIf="loading()" style="text-align:center;padding:32px 16px">
+        <mat-spinner diameter="40" style="margin:0 auto"></mat-spinner>
+      </div>
 
-    <ng-container *ngIf="!loading()">
+      <ng-container *ngIf="!loading()">
 
-      <!-- ── DESKTOP: table ───────────────────────────────────────────── -->
-      <ng-container *ngIf="!screen.isMobile()">
-        <table mat-table [dataSource]="assets()">
+        <!-- ── DESKTOP: table ───────────────────────────────────────────── -->
+        <ng-container *ngIf="!screen.isMobile()">
+          <table mat-table [dataSource]="assets()">
 
-          <!-- Image column -->
-          <ng-container matColumnDef="image">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let a">
-              <div class="asset-thumb-cell">
-                <a [routerLink]="['/assets', a.id]">
-                  <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb-sm" />
-                  <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder-sm"><mat-icon>build</mat-icon></div>
+            <!-- Image column -->
+            <ng-container matColumnDef="image">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let a">
+                <div class="asset-thumb-cell">
+                  <a [routerLink]="['/assets', a.id]">
+                    <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb-sm" />
+                    <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder-sm"><mat-icon>build</mat-icon></div>
+                  </a>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>{{ 'asset.name' | translate }}</th>
+              <td mat-cell *matCellDef="let a"><a [routerLink]="['/assets', a.id]" class="asset-link">{{ a.name }}</a></td>
+            </ng-container>
+            <ng-container matColumnDef="serialNumber">
+              <th mat-header-cell *matHeaderCellDef>{{ 'asset.serial' | translate }}</th>
+              <td mat-cell *matCellDef="let a">{{ a.serialNumber || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>{{ 'asset.category' | translate }}</th>
+              <td mat-cell *matCellDef="let a">{{ a.category || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>{{ 'asset.status' | translate }}</th>
+              <td mat-cell *matCellDef="let a">
+                <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="qrCode">
+              <th mat-header-cell *matHeaderCellDef>{{ 'asset.qr' | translate }}</th>
+              <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}</code></td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let a" class="mat-column-actions">
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </ng-container>
+
+        <!-- ── MOBILE: card list ────────────────────────────────────────── -->
+        <ng-container *ngIf="screen.isMobile()">
+          <div class="m-list">
+            @for (a of assets(); track a.id) {
+              <div class="m-card asset-m-card">
+                <!-- Image on the left -->
+                <a [routerLink]="['/assets', a.id]" class="asset-thumb-wrap">
+                  <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb" />
+                  <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder">
+                    <mat-icon>build</mat-icon>
+                  </div>
                 </a>
-              </div>
-            </td>
-          </ng-container>
 
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>{{ 'asset.name' | translate }}</th>
-            <td mat-cell *matCellDef="let a"><a [routerLink]="['/assets', a.id]" class="asset-link">{{ a.name }}</a></td>
-          </ng-container>
-          <ng-container matColumnDef="serialNumber">
-            <th mat-header-cell *matHeaderCellDef>{{ 'asset.serial' | translate }}</th>
-            <td mat-cell *matCellDef="let a">{{ a.serialNumber || '—' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="category">
-            <th mat-header-cell *matHeaderCellDef>{{ 'asset.category' | translate }}</th>
-            <td mat-cell *matCellDef="let a">{{ a.category || '—' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>{{ 'asset.status' | translate }}</th>
-            <td mat-cell *matCellDef="let a">
-              <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="qrCode">
-            <th mat-header-cell *matHeaderCellDef>{{ 'asset.qr' | translate }}</th>
-            <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}</code></td>
-          </ng-container>
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let a" class="mat-column-actions">
-            </td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
-      </ng-container>
-
-      <!-- ── MOBILE: card list ────────────────────────────────────────── -->
-      <ng-container *ngIf="screen.isMobile()">
-        <div class="m-list">
-          @for (a of assets(); track a.id) {
-            <div class="m-card asset-m-card">
-              <!-- Image on the left -->
-              <a [routerLink]="['/assets', a.id]" class="asset-thumb-wrap">
-                <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="a.name" class="asset-thumb" />
-                <div *ngIf="!a.imageUrl" class="asset-thumb-placeholder">
-                  <mat-icon>build</mat-icon>
-                </div>
-              </a>
-
-              <!-- Details on the right -->
-              <div class="asset-m-body">
-                <a [routerLink]="['/assets', a.id]" class="asset-m-name">{{ a.name }}</a>
-                <span *ngIf="a.serialNumber" class="asset-m-serial">{{ a.serialNumber }}</span>
-                <div class="asset-m-meta">
-                  <span *ngIf="a.category" class="asset-m-category">{{ a.category }}</span>
-                  <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+                <!-- Details on the right -->
+                <div class="asset-m-body">
+                  <a [routerLink]="['/assets', a.id]" class="asset-m-name">{{ a.name }}</a>
+                  <span *ngIf="a.serialNumber" class="asset-m-serial">{{ a.serialNumber }}</span>
+                  <div class="asset-m-meta">
+                    <span *ngIf="a.category" class="asset-m-category">{{ a.category }}</span>
+                    <span class="status-badge" [ngClass]="a.status.toLowerCase()">{{ statusLabel(a.status) }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-        </div>
-      </ng-container>
+            }
+          </div>
+        </ng-container>
 
-      <p *ngIf="assets().length === 0" class="empty-state">{{ 'asset.noResults' | translate }}</p>
-    </ng-container>
+        <p *ngIf="assets().length === 0" class="empty-state">{{ 'asset.noResults' | translate }}</p>
+      </ng-container>
+    </div>
   </div>
 </div>

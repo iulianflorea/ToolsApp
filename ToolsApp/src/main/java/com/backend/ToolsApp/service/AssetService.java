@@ -77,8 +77,6 @@ public class AssetService {
 
         if (request.getLocationId() != null) {
             createTransfer(saved, request.getLocationId());
-        } else if (saved.getStatus() == AssetStatus.AVAILABLE) {
-            assignToStorage(saved);
         }
 
         return enrichResponse(saved);

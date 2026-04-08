@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, ElementRef, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,7 +23,7 @@ import { TransferService } from '../../../core/services/transfer.service';
 import { MaintenanceService } from '../../../core/services/maintenance.service';
 import { LocationService } from '../../../core/services/location.service';
 import { UserService } from '../../../core/services/user.service';
-import { Asset, Transfer, MaintenanceRecord, Location, AppUser } from '../../../core/models/models';
+import { Asset, Transfer, MaintenanceRecord, MaintenanceType, Location, AppUser } from '../../../core/models/models';
 import { ScreenService } from '../../../core/services/screen.service';
 import { QrPrintService, PRINT_SIZES, PrintSize } from '../../../core/services/qr-print.service';
 import { BluetoothPrintService } from '../../../core/services/bluetooth-print.service';
@@ -90,6 +90,19 @@ export class AssetDetailComponent implements OnInit {
     assignedToUserId: [null as number | null],
     returnDate:     [null as Date | null],
     notes:          [''],
+  });
+
+  // Quick-maintenance form
+  showMaintenanceForm = signal(false);
+  savingMaintenance = signal(false);
+  maintenanceTypes: MaintenanceType[] = ['SCHEDULED', 'REPAIR', 'CALIBRATION'];
+
+  maintenanceForm = this.fb.group({
+    type: [null as MaintenanceType | null, Validators.required],
+    scheduledDate: [null as Date | null],
+    technicianName: [''],
+    cost: [null as number | null],
+    notes: [''],
   });
 
   printSizes = PRINT_SIZES;
@@ -192,6 +205,39 @@ export class AssetDetailComponent implements OnInit {
         this.transferService.getAll(a.id).subscribe((t) => this.transfers.set(t));
       },
       error: () => this.savingTransfer.set(false),
+    });
+  }
+
+  // ── Quick maintenance ───────────────────────────────────────────────────────
+
+  openMaintenanceForm(): void {
+    this.showMaintenanceForm.set(true);
+  }
+
+  cancelMaintenanceForm(): void {
+    this.showMaintenanceForm.set(false);
+    this.maintenanceForm.reset();
+  }
+
+  submitMaintenance(): void {
+    const a = this.asset();
+    if (!a || this.maintenanceForm.invalid) return;
+    const raw = this.maintenanceForm.value;
+    this.savingMaintenance.set(true);
+    this.maintenanceService.create({
+      assetId: a.id,
+      type: raw.type!,
+      scheduledDate: raw.scheduledDate ? new Date(raw.scheduledDate).toISOString().split('T')[0] : undefined,
+      cost: raw.cost ?? undefined,
+      technicianName: raw.technicianName || undefined,
+      notes: raw.notes || undefined,
+    }).subscribe({
+      next: () => {
+        this.cancelMaintenanceForm();
+        this.savingMaintenance.set(false);
+        this.maintenanceService.getAll(undefined, a.id).subscribe((m) => this.maintenance.set(m));
+      },
+      error: () => this.savingMaintenance.set(false),
     });
   }
 

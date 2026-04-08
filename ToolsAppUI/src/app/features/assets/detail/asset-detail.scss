@@ -187,6 +187,18 @@
   padding-top: 4px;
 }
 
+.btn-orange {
+  color: #e65100 !important;
+  border-color: #e65100 !important;
+
+  mat-icon { color: #e65100; }
+}
+
+.btn-orange-raised {
+  background-color: #e65100 !important;
+  color: #fff !important;
+}
+
 .warranty-expired  { color: var(--red-text);   font-weight: 600; }
 .warranty-active   { color: var(--green-text); font-weight: 600; }
 
