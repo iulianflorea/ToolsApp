@@ -13,6 +13,7 @@ import { NgIf } from '@angular/common';
 import { LocationService } from '../../core/services/location.service';
 import { ScreenService } from '../../core/services/screen.service';
 import { Location, LocationType, LocationRequest } from '../../core/models/models';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-locations',
@@ -27,6 +28,7 @@ import { Location, LocationType, LocationRequest } from '../../core/models/model
     MatCardModule,
     MatTooltipModule,
     NgIf,
+    TranslatePipe,
   ],
   templateUrl: './locations.html',
   styleUrl: './locations.scss',

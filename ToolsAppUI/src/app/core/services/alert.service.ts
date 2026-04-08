@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { Alert } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -10,7 +10,9 @@ export class AlertService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Alert[]> {
-    return this.http.get<Alert[]>(this.API);
+    return this.http.post<void>(`${this.API}/check`, {}).pipe(
+      switchMap(() => this.http.get<Alert[]>(this.API))
+    );
   }
 
   markRead(id: number): Observable<Alert> {
@@ -19,5 +21,9 @@ export class AlertService {
 
   markAllRead(): Observable<void> {
     return this.http.put<void>(`${this.API}/read-all`, {});
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/${id}`);
   }
 }

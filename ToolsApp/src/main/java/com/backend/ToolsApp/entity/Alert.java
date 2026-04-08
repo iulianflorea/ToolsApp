@@ -32,6 +32,18 @@ public class Alert {
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
+    @Column(name = "is_urgent", nullable = false)
+    private boolean urgent = false;
+
+    @Column(name = "alert_date")
+    private String alertDate;
+
+    @Column(name = "days_remaining")
+    private Integer daysRemaining;
+
+    @Column(name = "alert_extra")
+    private String alertExtra;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

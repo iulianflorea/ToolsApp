@@ -1,11 +1,11 @@
 <div class="page-container">
   <div class="page-header">
     <h1>
-      Alerts
+      {{ 'alert.title' | translate }}
       <span *ngIf="unreadCount() > 0" class="unread-badge">{{ unreadCount() }}</span>
     </h1>
     <button mat-stroked-button (click)="markAllRead()" *ngIf="unreadCount() > 0">
-      <mat-icon>done_all</mat-icon> Mark All Read
+      <mat-icon>done_all</mat-icon> {{ 'alert.markAllRead' | translate }}
     </button>
   </div>
 
@@ -16,22 +16,29 @@
         [ngClass]="{ unread: !alert.isRead }"
         class="alert-item"
       >
-        <mat-icon matListItemIcon [style.color]="alertColor(alert.type)">
+        <mat-icon matListItemIcon [style.color]="alertColor(alert)">
           {{ alertIcon(alert.type) }}
         </mat-icon>
-        <span matListItemTitle>{{ alert.message }}</span>
+        <span matListItemTitle>{{ alertMessage(alert) }}</span>
         <span matListItemLine>
-          {{ alert.assetName ? ('Asset: ' + alert.assetName + ' · ') : '' }}
-          {{ alert.createdAt | date: 'medium' }}
+          {{ alert.assetName ? ('Asset: ' + alert.assetName) : '' }}{{ alert.assetSerialNumber ? (' · S/N: ' + alert.assetSerialNumber) : '' }}{{ (alert.assetName || alert.assetSerialNumber) ? ' · ' : '' }}{{ alert.createdAt | date: 'medium' }}
         </span>
         <button
           matListItemMeta
           mat-icon-button
           *ngIf="!alert.isRead"
           (click)="markRead(alert.id)"
-          matTooltip="Mark as read"
+          [matTooltip]="'alert.markRead' | translate"
         >
           <mat-icon>check</mat-icon>
+        </button>
+        <button
+          matListItemMeta
+          mat-icon-button
+          (click)="delete(alert.id)"
+          [matTooltip]="'common.delete' | translate"
+        >
+          <mat-icon>delete</mat-icon>
         </button>
       </mat-list-item>
     </mat-list>
@@ -41,8 +48,8 @@
         <div class="empty-icon">
           <mat-icon>notifications_none</mat-icon>
         </div>
-        <p class="empty-title">All clear</p>
-        <p class="empty-sub">No alerts to show</p>
+        <p class="empty-title">{{ 'alert.allClear' | translate }}</p>
+        <p class="empty-sub">{{ 'alert.noAlerts' | translate }}</p>
       </div>
     </ng-template>
   </mat-card>

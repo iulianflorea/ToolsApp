@@ -17,6 +17,8 @@ import { MaintenanceService } from '../../core/services/maintenance.service';
 import { AssetService } from '../../core/services/asset.service';
 import { MaintenanceRecord, MaintenanceType, Asset } from '../../core/models/models';
 import { ScreenService } from '../../core/services/screen.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 
 @Component({
   selector: 'app-maintenance',
@@ -38,6 +40,8 @@ import { ScreenService } from '../../core/services/screen.service';
     NgClass,
     DatePipe,
     CurrencyPipe,
+    TranslatePipe,
+    ZXingScannerModule,
   ],
   templateUrl: './maintenance.html',
   styleUrl: './maintenance.scss',
@@ -56,6 +60,9 @@ export class MaintenanceComponent implements OnInit {
 
   private allAssets: Asset[] = [];
   filteredAssets = signal<Asset[]>([]);
+
+  scanningAsset = signal(false);
+  scanError     = signal('');
 
   // Separate control for display — assetId in form holds the actual ID
   assetSearch = new FormControl('');
@@ -91,16 +98,38 @@ export class MaintenanceComponent implements OnInit {
   }
 
   onAssetSelected(event: MatAutocompleteSelectedEvent): void {
-    const asset = event.option.value as Asset;
-    this.form.controls.assetId.setValue(asset.id);
+    this.selectAsset(event.option.value as Asset);
+  }
+
+  toggleScanner(): void {
+    this.scanError.set('');
+    this.scanningAsset.set(!this.scanningAsset());
+  }
+
+  onAssetScan(result: string): void {
+    this.scanningAsset.set(false);
+    this.assetService.getByQrCode(result).subscribe({
+      next:  (a) => { this.selectAsset(a); this.scanError.set(''); },
+      error: ()  => this.scanError.set('Unealta nu a fost găsită pentru codul scanat.'),
+    });
+  }
+
+  onScanError(): void {
+    this.scanError.set('Eroare cameră. Acordă permisiunea de acces la cameră.');
+  }
+
+  private selectAsset(a: Asset): void {
+    this.form.controls.assetId.setValue(a.id);
     this.assetSearch.setValue(
-      asset.name + (asset.serialNumber ? '  ·  ' + asset.serialNumber : ''),
+      a.name + (a.serialNumber ? '  ·  ' + a.serialNumber : ''),
       { emitEvent: false },
     );
   }
 
   resetForm(): void {
     this.showForm.set(false);
+    this.scanningAsset.set(false);
+    this.scanError.set('');
     this.form.reset();
     this.assetSearch.setValue('');
   }

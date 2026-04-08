@@ -24,4 +24,10 @@ public class CategoryController {
     public ResponseEntity<String> create(@RequestBody Map<String, String> body) {
         return ResponseEntity.ok(categoryService.create(body.getOrDefault("name", "")));
     }
+
+    @DeleteMapping("/{name}")
+    public ResponseEntity<Void> delete(@PathVariable String name) {
+        categoryService.delete(name);
+        return ResponseEntity.noContent().build();
+    }
 }

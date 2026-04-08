@@ -2,6 +2,10 @@
   height: 100vh;
 }
 
+.sidenav {
+  width: 220px;
+}
+
 .content-area {
   min-height: calc(100vh - 52px);
   overflow-y: auto;

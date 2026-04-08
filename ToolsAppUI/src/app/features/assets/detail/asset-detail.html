@@ -178,6 +178,9 @@
                     <mat-icon>{{ bt.busy() ? 'hourglass_empty' : 'print' }}</mat-icon>
                     {{ bt.busy() ? 'Se trimite…' : 'Print BT' }}
                   </button>
+                  <button mat-stroked-button (click)="bt.probeInfo()" [disabled]="bt.busy()">
+                    Probe Info
+                  </button>
                 </ng-container>
                 <p *ngIf="bt.error()" class="bt-error">{{ bt.error() }}</p>
               </ng-container>

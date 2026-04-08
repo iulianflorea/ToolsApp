@@ -13,6 +13,7 @@ import { NgIf, NgClass, DatePipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { AppUser, UserRole } from '../../core/models/models';
 import { ScreenService } from '../../core/services/screen.service';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-users',
@@ -30,6 +31,7 @@ import { ScreenService } from '../../core/services/screen.service';
     NgIf,
     NgClass,
     DatePipe,
+    TranslatePipe,
   ],
   templateUrl: './users.html',
   styleUrl: './users.scss',

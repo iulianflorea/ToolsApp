@@ -4,7 +4,7 @@ export type LocationType = 'WAREHOUSE' | 'JOB_SITE' | 'OFFICE';
 export type TransferStatus = 'ACTIVE' | 'RETURNED';
 export type MaintenanceStatus = 'PENDING' | 'COMPLETED';
 export type MaintenanceType = 'SCHEDULED' | 'REPAIR' | 'CALIBRATION';
-export type AlertType = 'MAINTENANCE_DUE' | 'OVERDUE_RETURN' | 'GENERAL';
+export type AlertType = 'MAINTENANCE_DUE' | 'OVERDUE_RETURN' | 'GENERAL' | 'WARRANTY_EXPIRING' | 'METROLOGY_EXPIRING';
 export type SubscriptionPlan = 'FREE' | 'BASIC' | 'PRO';
 
 export interface AuthResponse {
@@ -145,9 +145,14 @@ export interface Alert {
   tenantId: number;
   assetId?: number;
   assetName?: string;
+  assetSerialNumber?: string;
   type?: AlertType;
   message: string;
   isRead: boolean;
+  urgent: boolean;
+  alertDate?: string;
+  daysRemaining?: number | null;
+  alertExtra?: string;
   createdAt: string;
 }
 

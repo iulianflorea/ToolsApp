@@ -46,12 +46,16 @@ public class AlertScheduler {
             String message = String.format("Maintenance due for '%s' on %s (%s)",
                     assetName, record.getScheduledDate(), record.getType());
 
-            Alert alert = new Alert();
-            alert.setTenantId(record.getTenantId());
-            alert.setAssetId(record.getAssetId());
-            alert.setType(AlertType.MAINTENANCE_DUE);
-            alert.setMessage(message);
-            alertRepository.save(alert);
+            if (!alertRepository.existsByAssetIdAndMessage(record.getAssetId(), message)) {
+                Alert alert = new Alert();
+                alert.setTenantId(record.getTenantId());
+                alert.setAssetId(record.getAssetId());
+                alert.setType(AlertType.MAINTENANCE_DUE);
+                alert.setMessage(message);
+                alert.setAlertDate(record.getScheduledDate().toString());
+                alert.setAlertExtra(record.getType().name());
+                alertRepository.save(alert);
+            }
         }
 
         if (!upcoming.isEmpty()) {
@@ -75,12 +79,24 @@ public class AlertScheduler {
                 LocalDate warrantyExpiry = asset.getPurchaseDate().plusMonths(asset.getWarrantyMonths());
                 for (int days : WARNING_DAYS) {
                     if (today.plusDays(days).equals(warrantyExpiry)) {
-                        String msg = format("Garanția uneltei '%s' expiră pe %s (în %d %s)",
-                                asset.getName(), warrantyExpiry, days, days == 1 ? "zi" : "zile");
+                        String msg = format("warranty:%s:%s:%d", asset.getName(), warrantyExpiry, days);
                         if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
-                            alertRepository.save(buildAlert(asset, AlertType.WARRANTY_EXPIRING, msg));
+                            alertRepository.save(buildAlert(asset, AlertType.WARRANTY_EXPIRING, msg, false, warrantyExpiry.toString(), days));
                             created++;
                         }
+                    }
+                }
+                if (today.equals(warrantyExpiry)) {
+                    String msg = format("warranty-today:%s:%s", asset.getName(), warrantyExpiry);
+                    if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                        alertRepository.save(buildAlert(asset, AlertType.WARRANTY_EXPIRING, msg, true, warrantyExpiry.toString(), 0));
+                        created++;
+                    }
+                } else if (warrantyExpiry.isBefore(today)) {
+                    String msg = format("warranty-expired:%s:%s", asset.getName(), warrantyExpiry);
+                    if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                        alertRepository.save(buildAlert(asset, AlertType.WARRANTY_EXPIRING, msg, true, warrantyExpiry.toString(), null));
+                        created++;
                     }
                 }
             }
@@ -90,12 +106,24 @@ public class AlertScheduler {
                 LocalDate metrologyExpiry = asset.getMetrologyExpiryDate();
                 for (int days : WARNING_DAYS) {
                     if (today.plusDays(days).equals(metrologyExpiry)) {
-                        String msg = format("Metrologia uneltei '%s' expiră pe %s (în %d %s)",
-                                asset.getName(), metrologyExpiry, days, days == 1 ? "zi" : "zile");
+                        String msg = format("metrology:%s:%s:%d", asset.getName(), metrologyExpiry, days);
                         if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
-                            alertRepository.save(buildAlert(asset, AlertType.METROLOGY_EXPIRING, msg));
+                            alertRepository.save(buildAlert(asset, AlertType.METROLOGY_EXPIRING, msg, false, metrologyExpiry.toString(), days));
                             created++;
                         }
+                    }
+                }
+                if (today.equals(metrologyExpiry)) {
+                    String msg = format("metrology-today:%s:%s", asset.getName(), metrologyExpiry);
+                    if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                        alertRepository.save(buildAlert(asset, AlertType.METROLOGY_EXPIRING, msg, true, metrologyExpiry.toString(), 0));
+                        created++;
+                    }
+                } else if (metrologyExpiry.isBefore(today)) {
+                    String msg = format("metrology-expired:%s:%s", asset.getName(), metrologyExpiry);
+                    if (!alertRepository.existsByAssetIdAndMessage(asset.getId(), msg)) {
+                        alertRepository.save(buildAlert(asset, AlertType.METROLOGY_EXPIRING, msg, true, metrologyExpiry.toString(), null));
+                        created++;
                     }
                 }
             }
@@ -106,12 +134,15 @@ public class AlertScheduler {
         }
     }
 
-    private Alert buildAlert(Asset asset, AlertType type, String message) {
+    private Alert buildAlert(Asset asset, AlertType type, String message, boolean urgent, String alertDate, Integer daysRemaining) {
         Alert alert = new Alert();
         alert.setTenantId(asset.getTenantId());
         alert.setAssetId(asset.getId());
         alert.setType(type);
         alert.setMessage(message);
+        alert.setUrgent(urgent);
+        alert.setAlertDate(alertDate);
+        alert.setDaysRemaining(daysRemaining);
         return alert;
     }
 
@@ -129,14 +160,15 @@ public class AlertScheduler {
                 String assetName = assetRepository.findById(transfer.getAssetId())
                         .map(Asset::getName).orElse("Unknown Asset");
 
-                String message = String.format("Overdue return for asset '%s' (due: %s)",
-                        assetName, transfer.getReturnDate().toLocalDate());
+                String returnDate = transfer.getReturnDate().toLocalDate().toString();
+                String message = String.format("overdue:%s:%s", assetName, returnDate);
 
                 Alert alert = new Alert();
                 alert.setTenantId(transfer.getTenantId());
                 alert.setAssetId(transfer.getAssetId());
                 alert.setType(AlertType.OVERDUE_RETURN);
                 alert.setMessage(message);
+                alert.setAlertDate(returnDate);
                 alertRepository.save(alert);
             }
         }

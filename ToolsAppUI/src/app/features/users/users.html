@@ -1,25 +1,25 @@
 <div class="page-container">
   <div class="page-header">
-    <h1>Users</h1>
-    <button mat-raised-button color="primary" (click)="openForm()"><mat-icon>person_add</mat-icon> Add User</button>
+    <h1>{{ 'usr.title' | translate }}</h1>
+    <button mat-raised-button color="primary" (click)="openForm()"><mat-icon>person_add</mat-icon> {{ 'usr.add' | translate }}</button>
   </div>
 
   <mat-card *ngIf="showForm()" class="form-card">
-    <mat-card-header><mat-card-title>{{ editingId() ? 'Edit User' : 'New User' }}</mat-card-title></mat-card-header>
+    <mat-card-header><mat-card-title>{{ editingId() ? ('usr.editTitle' | translate) : ('usr.newTitle' | translate) }}</mat-card-title></mat-card-header>
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="save()" class="form-row">
-        <mat-form-field appearance="outline"><mat-label>Full Name *</mat-label><input matInput formControlName="fullName" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Email *</mat-label><input matInput type="email" formControlName="email" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Password {{ editingId() ? '(leave blank to keep)' : '*' }}</mat-label><input matInput type="password" formControlName="password" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>{{ 'usr.fullName' | translate }}</mat-label><input matInput formControlName="fullName" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>{{ 'usr.email' | translate }}</mat-label><input matInput type="email" formControlName="email" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>{{ editingId() ? ('usr.passwordEdit' | translate) : ('usr.passwordNew' | translate) }}</mat-label><input matInput type="password" formControlName="password" /></mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Role *</mat-label>
+          <mat-label>{{ 'usr.role' | translate }}</mat-label>
           <mat-select formControlName="role">
             @for (r of roles; track r) { <mat-option [value]="r">{{ r }}</mat-option> }
           </mat-select>
         </mat-form-field>
         <div class="form-actions">
-          <button mat-button type="button" (click)="cancel()">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ editingId() ? 'Update' : 'Create' }}</button>
+          <button mat-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ editingId() ? ('common.update' | translate) : ('common.create' | translate) }}</button>
         </div>
       </form>
     </mat-card-content>
@@ -31,33 +31,33 @@
     <ng-container *ngIf="!screen.isMobile()">
       <table mat-table [dataSource]="users()" class="clickable-rows">
         <ng-container matColumnDef="fullName">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | translate }}</th>
           <td mat-cell *matCellDef="let u"><strong>{{ u.fullName }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'usr.email' | translate }}</th>
           <td mat-cell *matCellDef="let u">{{ u.email }}</td>
         </ng-container>
         <ng-container matColumnDef="role">
-          <th mat-header-cell *matHeaderCellDef>Role</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'usr.role' | translate }}</th>
           <td mat-cell *matCellDef="let u"><span class="role-badge" [ngClass]="u.role.toLowerCase()">{{ u.role }}</span></td>
         </ng-container>
         <ng-container matColumnDef="active">
-          <th mat-header-cell *matHeaderCellDef>Active</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.active' | translate }}</th>
           <td mat-cell *matCellDef="let u">
             <mat-icon [style.color]="u.active ? 'var(--green)' : 'var(--red)'">{{ u.active ? 'check_circle' : 'cancel' }}</mat-icon>
           </td>
         </ng-container>
         <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'usr.colCreated' | translate }}</th>
           <td mat-cell *matCellDef="let u">{{ u.createdAt | date:'mediumDate' }}</td>
         </ng-container>
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let u" class="mat-column-actions" (click)="$event.stopPropagation()">
             <div class="action-buttons">
-              <button mat-icon-button (click)="openForm(u)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button color="warn" (click)="deactivate(u.id)" matTooltip="Deactivate"><mat-icon>block</mat-icon></button>
+              <button mat-icon-button (click)="openForm(u)" [matTooltip]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="deactivate(u.id)" [matTooltip]="'common.deactivate' | translate"><mat-icon>block</mat-icon></button>
             </div>
           </td>
         </ng-container>
@@ -72,19 +72,19 @@
         @for (u of users(); track u.id) {
           <div class="m-card" [routerLink]="['/users', u.id]" style="cursor:pointer">
             <div class="m-row">
-              <span class="m-label">Name</span>
+              <span class="m-label">{{ 'common.name' | translate }}</span>
               <span class="m-val-bold">{{ u.fullName }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Email</span>
+              <span class="m-label">{{ 'usr.email' | translate }}</span>
               <span class="m-val">{{ u.email }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Role</span>
+              <span class="m-label">{{ 'usr.role' | translate }}</span>
               <span class="role-badge" [ngClass]="u.role.toLowerCase()">{{ u.role }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Active</span>
+              <span class="m-label">{{ 'common.active' | translate }}</span>
               <mat-icon [style.color]="u.active ? 'var(--green)' : 'var(--red)'">{{ u.active ? 'check_circle' : 'cancel' }}</mat-icon>
             </div>
           </div>
@@ -92,6 +92,6 @@
       </div>
     </ng-container>
 
-    <p *ngIf="users().length === 0" class="empty-state">No users found.</p>
+    <p *ngIf="users().length === 0" class="empty-state">{{ 'usr.noUsers' | translate }}</p>
   </div>
 </div>

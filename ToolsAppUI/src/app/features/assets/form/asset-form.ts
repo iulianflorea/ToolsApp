@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgIf } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { startWith, map } from 'rxjs';
@@ -20,6 +21,7 @@ import { AssetService } from '../../../core/services/asset.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { LocationService } from '../../../core/services/location.service';
 import { Asset, AssetStatus, Location } from '../../../core/models/models';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-asset-form',
@@ -37,7 +39,9 @@ import { Asset, AssetStatus, Location } from '../../../core/models/models';
     MatAutocompleteModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
     NgIf,
+    TranslatePipe,
   ],
   templateUrl: './asset-form.html',
   styleUrl: './asset-form.scss',
@@ -165,25 +169,6 @@ export class AssetFormComponent implements OnInit {
   onNameSelected(event: MatAutocompleteSelectedEvent): void {
     const selected = this.allAssets.find((a) => a.name === event.option.value);
     if (selected?.category) this.categoryCtrl.setValue(selected.category, { emitEvent: false });
-  }
-
-  onCategoryKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Enter') return;
-    const value = (this.categoryCtrl.value || '').trim();
-    if (!value) return;
-    event.preventDefault();
-
-    const exists = this.allCategories.some((c) => c.toLowerCase() === value.toLowerCase());
-    if (exists) {
-      this.snackBar.open(`Categoria "${value}" există deja.`, 'OK', { duration: 3000 });
-      return;
-    }
-    this.categoryService.create(value).subscribe((name) => {
-      this.allCategories = [...this.allCategories, name].sort();
-      this.filteredCategories.set(this.allCategories);
-      this.categoryCtrl.setValue(name, { emitEvent: false });
-      this.snackBar.open(`Categoria "${name}" a fost adăugată.`, '', { duration: 2000 });
-    });
   }
 
   onLocationSelected(event: MatAutocompleteSelectedEvent): void {

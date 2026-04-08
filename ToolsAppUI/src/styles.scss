@@ -28,6 +28,19 @@ $theme: mat.m2-define-light-theme((
 
 @include mat.all-component-themes($theme);
 
+// ─── Category select panel ────────────────────────────────────────────────────
+.category-select-panel {
+  min-width: 280px !important;
+  width: max-content !important;
+  max-width: 400px !important;
+
+  .mat-mdc-option .mdc-list-item__primary-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 // ─── CSS Custom Properties – Light ───────────────────────────────────────────
 :root {
   --bg-page:     #F5F5F7;

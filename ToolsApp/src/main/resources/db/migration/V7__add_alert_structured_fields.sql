@@ -1,0 +1,3 @@
+ALTER TABLE alerts ADD COLUMN alert_date VARCHAR(20) NULL;
+ALTER TABLE alerts ADD COLUMN days_remaining INT NULL;
+ALTER TABLE alerts ADD COLUMN alert_extra VARCHAR(100) NULL;

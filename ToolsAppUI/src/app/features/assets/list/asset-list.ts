@@ -14,7 +14,9 @@ import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { AssetService } from '../../../core/services/asset.service';
+import { CategoryService } from '../../../core/services/category.service';
 import { ScreenService } from '../../../core/services/screen.service';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Asset, AssetStatus } from '../../../core/models/models';
 
 @Component({
@@ -30,6 +32,7 @@ import { Asset, AssetStatus } from '../../../core/models/models';
     MatSelectModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatSnackBarModule,
     NgIf,
     NgClass,
     SlicePipe,
@@ -52,13 +55,20 @@ export class AssetListComponent implements OnInit {
   statusCtrl = new FormControl<AssetStatus | ''>('');
   categoryCtrl = new FormControl('');
 
-  categories = ['Power Tools', 'Safety', 'Heavy Machinery', 'Power', 'Measurement', 'Construction', 'Electrical'];
+  categories: string[] = [];
+  newCategoryName = '';
 
   readonly screen = inject(ScreenService);
 
-  constructor(private assetService: AssetService, private router: Router) {}
+  constructor(
+    private assetService: AssetService,
+    private categoryService: CategoryService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+  ) {}
 
   ngOnInit(): void {
+    this.categoryService.getAll().subscribe(cats => this.categories = cats);
     this.loadAssets();
     this.searchCtrl.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => this.loadAssets());
     this.statusCtrl.valueChanges.subscribe(() => this.loadAssets());
@@ -97,6 +107,27 @@ export class AssetListComponent implements OnInit {
   delete(id: number): void {
     if (!confirm('Delete this asset?')) return;
     this.assetService.delete(id).subscribe(() => this.loadAssets());
+  }
+
+  addCategory(event: Event): void {
+    event.stopPropagation();
+    const name = this.newCategoryName.trim();
+    if (!name) return;
+    this.categoryService.create(name).subscribe({
+      next: () => {
+        this.categories = [...this.categories, name].sort();
+        this.newCategoryName = '';
+      },
+      error: (err) => this.snackBar.open(err.error?.message || 'Eroare', 'OK', { duration: 3000 }),
+    });
+  }
+
+  deleteCategory(name: string, event: Event): void {
+    event.stopPropagation();
+    this.categoryService.delete(name).subscribe(() => {
+      this.categories = this.categories.filter((c) => c !== name);
+      if (this.categoryCtrl.value === name) this.categoryCtrl.setValue('');
+    });
   }
 
   statusClass(status: AssetStatus): string {

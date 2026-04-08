@@ -1,26 +1,26 @@
 <div class="page-container">
   <div class="page-header">
-    <h1>Locations</h1>
+    <h1>{{ 'loc.title' | translate }}</h1>
     <button mat-raised-button color="primary" (click)="openForm()">
-      <mat-icon>add</mat-icon> Add Location
+      <mat-icon>add</mat-icon> {{ 'loc.add' | translate }}
     </button>
   </div>
 
   <mat-card *ngIf="showForm()" class="form-card">
-    <mat-card-header><mat-card-title>{{ editingId() ? 'Edit Location' : 'New Location' }}</mat-card-title></mat-card-header>
+    <mat-card-header><mat-card-title>{{ editingId() ? ('loc.editTitle' | translate) : ('loc.newTitle' | translate) }}</mat-card-title></mat-card-header>
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="save()" class="form-row">
-        <mat-form-field appearance="outline"><mat-label>Name *</mat-label><input matInput formControlName="name" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Address</mat-label><input matInput formControlName="address" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>{{ 'loc.name' | translate }}</mat-label><input matInput formControlName="name" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>{{ 'loc.address' | translate }}</mat-label><input matInput formControlName="address" /></mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Type *</mat-label>
+          <mat-label>{{ 'loc.type' | translate }}</mat-label>
           <mat-select formControlName="type">
             @for (t of locationTypes; track t) { <mat-option [value]="t">{{ typeLabel(t) }}</mat-option> }
           </mat-select>
         </mat-form-field>
         <div class="form-actions">
-          <button mat-button type="button" (click)="cancel()">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ editingId() ? 'Update' : 'Create' }}</button>
+          <button mat-button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ editingId() ? ('common.update' | translate) : ('common.create' | translate) }}</button>
         </div>
       </form>
     </mat-card-content>
@@ -32,19 +32,19 @@
     <ng-container *ngIf="!screen.isMobile()">
       <table mat-table [dataSource]="locations()">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.name' | translate }}</th>
           <td mat-cell *matCellDef="let l"><strong>{{ l.name }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="address">
-          <th mat-header-cell *matHeaderCellDef>Address</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.address' | translate }}</th>
           <td mat-cell *matCellDef="let l">{{ l.address || '—' }}</td>
         </ng-container>
         <ng-container matColumnDef="type">
-          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.type' | translate }}</th>
           <td mat-cell *matCellDef="let l"><span class="type-badge">{{ typeLabel(l.type) }}</span></td>
         </ng-container>
         <ng-container matColumnDef="active">
-          <th mat-header-cell *matHeaderCellDef>Active</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.active' | translate }}</th>
           <td mat-cell *matCellDef="let l">
             <mat-icon [style.color]="l.active ? 'var(--green)' : 'var(--red)'">{{ l.active ? 'check_circle' : 'cancel' }}</mat-icon>
           </td>
@@ -53,8 +53,8 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let l" class="mat-column-actions">
             <div class="action-buttons">
-              <button mat-icon-button (click)="openForm(l)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button color="warn" (click)="delete(l.id)" matTooltip="Deactivate"><mat-icon>block</mat-icon></button>
+              <button mat-icon-button (click)="openForm(l)" [matTooltip]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="delete(l.id)" [matTooltip]="'common.deactivate' | translate"><mat-icon>block</mat-icon></button>
             </div>
           </td>
         </ng-container>
@@ -69,30 +69,30 @@
         @for (l of locations(); track l.id) {
           <div class="m-card">
             <div class="m-row">
-              <span class="m-label">Name</span>
+              <span class="m-label">{{ 'common.name' | translate }}</span>
               <span class="m-val-bold">{{ l.name }}</span>
             </div>
             <div class="m-row" *ngIf="l.address">
-              <span class="m-label">Address</span>
+              <span class="m-label">{{ 'common.address' | translate }}</span>
               <span class="m-val">{{ l.address }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Type</span>
+              <span class="m-label">{{ 'common.type' | translate }}</span>
               <span class="type-badge">{{ typeLabel(l.type) }}</span>
             </div>
             <div class="m-row">
-              <span class="m-label">Active</span>
+              <span class="m-label">{{ 'common.active' | translate }}</span>
               <mat-icon [style.color]="l.active ? 'var(--green)' : 'var(--red)'">{{ l.active ? 'check_circle' : 'cancel' }}</mat-icon>
             </div>
             <div class="m-actions">
-              <button mat-icon-button (click)="openForm(l)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button color="warn" (click)="delete(l.id)" matTooltip="Deactivate"><mat-icon>block</mat-icon></button>
+              <button mat-icon-button (click)="openForm(l)" [matTooltip]="'common.edit' | translate"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="delete(l.id)" [matTooltip]="'common.deactivate' | translate"><mat-icon>block</mat-icon></button>
             </div>
           </div>
         }
       </div>
     </ng-container>
 
-    <p *ngIf="locations().length === 0" class="empty-state">No locations yet.</p>
+    <p *ngIf="locations().length === 0" class="empty-state">{{ 'loc.noLocations' | translate }}</p>
   </div>
 </div>

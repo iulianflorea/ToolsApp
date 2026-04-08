@@ -1,6 +1,7 @@
 package com.backend.ToolsApp.controller;
 
 import com.backend.ToolsApp.dto.alert.AlertResponse;
+import com.backend.ToolsApp.scheduler.AlertScheduler;
 import com.backend.ToolsApp.service.AlertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,14 @@ import java.util.List;
 public class AlertController {
 
     private final AlertService alertService;
+    private final AlertScheduler alertScheduler;
+
+    @PostMapping("/check")
+    public ResponseEntity<Void> check() {
+        alertScheduler.checkExpiringDates();
+        alertScheduler.checkUpcomingMaintenance();
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping
     public ResponseEntity<List<AlertResponse>> getAll() {
@@ -28,6 +37,12 @@ public class AlertController {
     @PutMapping("/read-all")
     public ResponseEntity<Void> markAllRead() {
         alertService.markAllRead();
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        alertService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

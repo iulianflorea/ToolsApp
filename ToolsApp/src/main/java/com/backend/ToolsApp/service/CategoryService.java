@@ -2,6 +2,7 @@ package com.backend.ToolsApp.service;
 
 import com.backend.ToolsApp.entity.Category;
 import com.backend.ToolsApp.exception.BadRequestException;
+import com.backend.ToolsApp.exception.ResourceNotFoundException;
 import com.backend.ToolsApp.repository.CategoryRepository;
 import com.backend.ToolsApp.security.SecurityUser;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,13 @@ public class CategoryService {
         }
         categoryRepository.save(new Category(tid, trimmed));
         return trimmed;
+    }
+
+    @Transactional
+    public void delete(String name) {
+        Long tid = tenantId();
+        Category category = categoryRepository.findByTenantIdAndNameIgnoreCase(tid, name)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found: " + name));
+        categoryRepository.delete(category);
     }
 }

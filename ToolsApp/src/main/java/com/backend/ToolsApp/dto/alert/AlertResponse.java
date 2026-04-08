@@ -17,8 +17,13 @@ public class AlertResponse {
     private Long tenantId;
     private Long assetId;
     private String assetName;
+    private String assetSerialNumber;
     private AlertType type;
     private String message;
     private boolean isRead;
+    private boolean urgent;
+    private String alertDate;
+    private Integer daysRemaining;
+    private String alertExtra;
     private LocalDateTime createdAt;
 }

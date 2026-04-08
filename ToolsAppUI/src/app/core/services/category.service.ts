@@ -12,6 +12,10 @@ export class CategoryService {
   }
 
   create(name: string): Observable<string> {
-    return this.http.post<string>(this.base, { name });
+    return this.http.post(this.base, { name }, { responseType: 'text' });
+  }
+
+  delete(name: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(name)}`);
   }
 }

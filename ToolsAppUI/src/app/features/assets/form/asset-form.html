@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <a mat-icon-button routerLink="/assets"><mat-icon>arrow_back</mat-icon></a>
-      <h1 style="display: inline; margin-left: 8px">{{ isEdit ? 'Edit Asset' : 'Add Asset' }}</h1>
+      <h1 style="display: inline; margin-left: 8px">{{ isEdit ? ('form.editTitle' | translate) : ('form.addTitle' | translate) }}</h1>
     </div>
   </div>
 
@@ -16,7 +16,7 @@
             <img *ngIf="imagePreview()" [src]="imagePreview()" alt="Asset photo" />
             <div *ngIf="!imagePreview()" class="image-placeholder">
               <mat-icon>photo_camera</mat-icon>
-              <span>Adaugă fotografie</span>
+              <span>{{ 'form.addPhoto' | translate }}</span>
             </div>
             <div *ngIf="uploading()" class="upload-overlay">
               <mat-spinner diameter="32"></mat-spinner>
@@ -25,9 +25,9 @@
           <div class="image-actions">
             <button mat-stroked-button type="button" (click)="fileInput.click()" [disabled]="uploading()">
               <mat-icon>upload</mat-icon>
-              {{ imagePreview() ? 'Schimbă poza' : 'Alege poza' }}
+              {{ imagePreview() ? ('form.changePhoto' | translate) : ('form.choosePhoto' | translate) }}
             </button>
-            <button mat-icon-button type="button" color="warn" *ngIf="imagePreview()" (click)="removeImage()" matTooltip="Șterge poza">
+            <button mat-icon-button type="button" color="warn" *ngIf="imagePreview()" (click)="removeImage()" [matTooltip]="'form.deletePhoto' | translate">
               <mat-icon>delete</mat-icon>
             </button>
             <input #fileInput type="file" accept="image/*" style="display:none" (change)="onImageSelected($event)" />
@@ -38,10 +38,10 @@
 
           <!-- Name with autocomplete -->
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Asset Name *</mat-label>
+            <mat-label>{{ 'form.assetName' | translate }}</mat-label>
             <input matInput formControlName="name"
                    [matAutocomplete]="autoName"
-                   placeholder="Scrie sau alege un asset existent" />
+                   [placeholder]="'form.assetNameHint' | translate" />
             <mat-autocomplete #autoName="matAutocomplete" (optionSelected)="onNameSelected($event)">
               @for (asset of filteredAssets(); track asset.id) {
                 <mat-option [value]="asset.name">
@@ -53,18 +53,16 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Serial Number</mat-label>
+            <mat-label>{{ 'form.serialNumber' | translate }}</mat-label>
             <input matInput formControlName="serialNumber" />
           </mat-form-field>
 
-          <!-- Category — free-text autocomplete, Enter to add new -->
+          <!-- Category — autocomplete -->
           <mat-form-field appearance="outline">
-            <mat-label>Category</mat-label>
+            <mat-label>{{ 'form.category' | translate }}</mat-label>
             <input matInput [formControl]="categoryCtrl"
                    [matAutocomplete]="autoCat"
-                   placeholder="Selectează sau scrie o categorie nouă"
-                   (keydown)="onCategoryKeydown($event)" />
-            <mat-hint>Apasă Enter pentru a adăuga o categorie nouă</mat-hint>
+                   [placeholder]="'form.categoryHint' | translate" />
             <mat-autocomplete #autoCat="matAutocomplete">
               @for (c of filteredCategories(); track c) {
                 <mat-option [value]="c">{{ c }}</mat-option>
@@ -73,7 +71,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Status</mat-label>
+            <mat-label>{{ 'asset.status' | translate }}</mat-label>
             <mat-select formControlName="status">
               @for (s of statuses; track s) {
                 <mat-option [value]="s">{{ s.replace('_', ' ') }}</mat-option>
@@ -83,14 +81,14 @@
 
           <!-- Location — auto-sets status IN_USE -->
           <mat-form-field appearance="outline">
-            <mat-label>Locație</mat-label>
+            <mat-label>{{ 'form.location' | translate }}</mat-label>
             <input matInput [formControl]="locationCtrl"
                    [matAutocomplete]="autoLoc"
-                   placeholder="Selectează locația" />
-            <button *ngIf="form.value.locationId" mat-icon-button matSuffix type="button" (click)="clearLocation()" matTooltip="Elimină locația">
+                   [placeholder]="'form.locationHint' | translate" />
+            <button *ngIf="form.value.locationId" mat-icon-button matSuffix type="button" (click)="clearLocation()" [matTooltip]="'form.removeLocation' | translate">
               <mat-icon>close</mat-icon>
             </button>
-            <mat-hint *ngIf="form.value.locationId">Status setat automat pe IN USE</mat-hint>
+            <mat-hint *ngIf="form.value.locationId">{{ 'form.locationAutoHint' | translate }}</mat-hint>
             <mat-autocomplete #autoLoc="matAutocomplete" (optionSelected)="onLocationSelected($event)">
               @for (l of filteredLocations(); track l.id) {
                 <mat-option [value]="l">{{ l.name }}</mat-option>
@@ -99,41 +97,41 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Purchase Date</mat-label>
+            <mat-label>{{ 'form.purchaseDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="picker" formControlName="purchaseDate" />
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Purchase Price</mat-label>
+            <mat-label>{{ 'form.purchasePrice' | translate }}</mat-label>
             <input matInput type="number" formControlName="purchasePrice" />
             <span matTextSuffix>&nbsp;RON</span>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Warranty (months)</mat-label>
+            <mat-label>{{ 'form.warrantyMonths' | translate }}</mat-label>
             <input matInput type="number" formControlName="warrantyMonths" min="0" />
             <mat-icon matSuffix>verified_user</mat-icon>
           </mat-form-field>
 
           <!-- Metrology -->
           <mat-form-field appearance="outline">
-            <mat-label>Data metrologizare</mat-label>
+            <mat-label>{{ 'form.metrologyDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerMet" formControlName="metrologyDate" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerMet"></mat-datepicker-toggle>
             <mat-datepicker #pickerMet></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Expirare metrologizare</mat-label>
+            <mat-label>{{ 'form.metrologyExpiry' | translate }}</mat-label>
             <input matInput [matDatepicker]="pickerMetExp" formControlName="metrologyExpiryDate" />
             <mat-datepicker-toggle matIconSuffix [for]="pickerMetExp"></mat-datepicker-toggle>
             <mat-datepicker #pickerMetExp></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Notes</mat-label>
+            <mat-label>{{ 'common.notes' | translate }}</mat-label>
             <textarea matInput formControlName="notes" rows="3"></textarea>
           </mat-form-field>
 
@@ -142,9 +140,9 @@
         <div *ngIf="error" class="error-message">{{ error }}</div>
 
         <div class="form-actions">
-          <a mat-button routerLink="/assets">Cancel</a>
+          <a mat-button routerLink="/assets">{{ 'common.cancel' | translate }}</a>
           <button mat-raised-button color="primary" type="submit" [disabled]="loading || uploading() || form.invalid">
-            {{ loading ? 'Saving…' : (isEdit ? 'Update Asset' : 'Create Asset') }}
+            {{ loading ? ('form.saving' | translate) : (isEdit ? ('form.updateAsset' | translate) : ('form.createAsset' | translate)) }}
           </button>
         </div>
       </form>

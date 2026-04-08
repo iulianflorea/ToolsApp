@@ -17,6 +17,21 @@
   border-top: 1px solid var(--border);
 }
 
+.scanner-panel {
+  margin-top: -8px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+
+  zxing-scanner { width: 100%; max-height: 260px; display: block; }
+}
+
+.scan-error {
+  color: var(--red);
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
 .option-serial {
   margin-left: 10px;
   font-size: 12px;

@@ -45,6 +45,13 @@ public class AlertService {
     }
 
     @Transactional
+    public void delete(Long id) {
+        Alert alert = alertRepository.findByIdAndTenantId(id, tenantId())
+                .orElseThrow(() -> new ResourceNotFoundException("Alert not found"));
+        alertRepository.delete(alert);
+    }
+
+    @Transactional
     public void createAlert(Long tenantId, Long assetId, AlertType type, String message) {
         Alert alert = new Alert();
         alert.setTenantId(tenantId);
@@ -62,9 +69,16 @@ public class AlertService {
         r.setType(a.getType());
         r.setMessage(a.getMessage());
         r.setRead(a.isRead());
+        r.setUrgent(a.isUrgent());
+        r.setAlertDate(a.getAlertDate());
+        r.setDaysRemaining(a.getDaysRemaining());
+        r.setAlertExtra(a.getAlertExtra());
         r.setCreatedAt(a.getCreatedAt());
         if (a.getAssetId() != null)
-            assetRepository.findById(a.getAssetId()).ifPresent(asset -> r.setAssetName(asset.getName()));
+            assetRepository.findById(a.getAssetId()).ifPresent(asset -> {
+                r.setAssetName(asset.getName());
+                r.setAssetSerialNumber(asset.getSerialNumber());
+            });
         return r;
     }
 }

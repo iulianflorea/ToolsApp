@@ -26,9 +26,27 @@
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>{{ 'asset.category' | translate }}</mat-label>
-        <mat-select [formControl]="categoryCtrl">
+        <mat-select [formControl]="categoryCtrl" panelClass="category-select-panel">
+          <div class="category-add-row" (click)="$event.stopPropagation()">
+            <input class="category-add-input"
+                   [value]="newCategoryName"
+                   (input)="newCategoryName = $any($event.target).value"
+                   (keydown.enter)="addCategory($event)"
+                   placeholder="Categorie nouă..." />
+            <button mat-icon-button type="button" (click)="addCategory($event)">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
           <mat-option value="">{{ 'asset.all' | translate }}</mat-option>
-          @for (c of categories; track c) { <mat-option [value]="c">{{ c }}</mat-option> }
+          @for (c of categories; track c) {
+            <mat-option [value]="c" class="category-option">
+              <span class="category-option-label">{{ c }}</span>
+              <button mat-icon-button type="button" class="category-delete-btn"
+                      (click)="deleteCategory(c, $event)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
@@ -84,7 +102,7 @@
           </ng-container>
           <ng-container matColumnDef="qrCode">
             <th mat-header-cell *matHeaderCellDef>{{ 'asset.qr' | translate }}</th>
-            <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}…</code></td>
+            <td mat-cell *matCellDef="let a"><code>{{ a.qrCode | slice:0:8 }}</code></td>
           </ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef></th>
