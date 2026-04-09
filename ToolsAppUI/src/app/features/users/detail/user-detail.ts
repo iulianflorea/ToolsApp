@@ -14,7 +14,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { NgIf, NgClass, DatePipe, UpperCasePipe } from '@angular/common';
 import { UserService } from '../../../core/services/user.service';
 import { QrPrintService, PRINT_SIZES, PrintSize } from '../../../core/services/qr-print.service';
-import { BluetoothPrintService } from '../../../core/services/bluetooth-print.service';
 import { AppUser, UserRole } from '../../../core/models/models';
 import QRCode from 'qrcode';
 
@@ -46,7 +45,6 @@ export class UserDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
   private readonly qrPrint = inject(QrPrintService);
-  readonly bt = inject(BluetoothPrintService);
 
   user = signal<AppUser | null>(null);
   editing = signal(false);
@@ -112,13 +110,6 @@ export class UserDetailComponent implements OnInit {
     const u = this.user();
     if (u?.qrCode) {
       this.qrPrint.print(u.qrCode, u.fullName, this.selectedPrintSize().mm);
-    }
-  }
-
-  async printBt(): Promise<void> {
-    const u = this.user();
-    if (u?.qrCode) {
-      await this.bt.printQr(u.qrCode, u.fullName, this.selectedPrintSize().mm);
     }
   }
 

@@ -102,39 +102,6 @@
           </button>
         </div>
 
-        <!-- Bluetooth -->
-        <div class="bt-bar">
-          <ng-container *ngIf="bt.supported; else btNotSupported">
-            <!-- Not connected -->
-            <ng-container *ngIf="!bt.connected()">
-              <button mat-stroked-button (click)="bt.connect()">
-                <mat-icon>bluetooth</mat-icon> Conectează imprimantă BT
-              </button>
-            </ng-container>
-            <!-- Connected -->
-            <ng-container *ngIf="bt.connected()">
-              <div class="bt-status">
-                <mat-icon style="color:var(--blue)">bluetooth_connected</mat-icon>
-                <span>{{ bt.deviceName() }}</span>
-                <button mat-icon-button (click)="bt.disconnect()" matTooltip="Deconectează">
-                  <mat-icon>bluetooth_disabled</mat-icon>
-                </button>
-              </div>
-              <button mat-raised-button color="accent" (click)="printBt()" [disabled]="bt.busy()">
-                <mat-icon>{{ bt.busy() ? 'hourglass_empty' : 'print' }}</mat-icon>
-                {{ bt.busy() ? 'Se trimite…' : 'Print BT' }}
-              </button>
-            </ng-container>
-            <p *ngIf="bt.error()" class="bt-error">{{ bt.error() }}</p>
-          </ng-container>
-          <ng-template #btNotSupported>
-            <p class="bt-unsupported">
-              <mat-icon>bluetooth_disabled</mat-icon>
-              Bluetooth nu e suportat în acest browser.<br>
-              <small>Folosește <strong>Chrome</strong> sau <strong>Edge</strong> pe desktop/Android.</small>
-            </p>
-          </ng-template>
-        </div>
       </mat-card-content>
     </mat-card>
 

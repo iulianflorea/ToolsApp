@@ -15,6 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NgIf, NgClass, CurrencyPipe, DatePipe } from '@angular/common';
 import { startWith } from 'rxjs';
 import { toLocalDateString } from '../../../core/utils/date.utils';
@@ -26,7 +27,9 @@ import { UserService } from '../../../core/services/user.service';
 import { Asset, Transfer, MaintenanceRecord, MaintenanceType, Location, AppUser } from '../../../core/models/models';
 import { ScreenService } from '../../../core/services/screen.service';
 import { QrPrintService, PRINT_SIZES, PrintSize } from '../../../core/services/qr-print.service';
-import { BluetoothPrintService } from '../../../core/services/bluetooth-print.service';
+import { PrintDialogComponent } from '../../../components/print-dialog/print-dialog.component';
+import { PrinterService } from '../../../core/services/printer.service';
+import { PrinterInfo } from '../../../core/models/printer.models';
 import QRCode from 'qrcode';
 
 @Component({
@@ -48,6 +51,7 @@ import QRCode from 'qrcode';
     MatAutocompleteModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatDialogModule,
     NgIf,
     NgClass,
     CurrencyPipe,
@@ -61,7 +65,6 @@ export class AssetDetailComponent implements OnInit {
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
   readonly screen = inject(ScreenService);
   private readonly qrPrint = inject(QrPrintService);
-  readonly bt = inject(BluetoothPrintService);
   private readonly fb = inject(FormBuilder);
   private readonly locationService = inject(LocationService);
   private readonly userService = inject(UserService);
@@ -108,6 +111,11 @@ export class AssetDetailComponent implements OnInit {
   printSizes = PRINT_SIZES;
   selectedPrintSize = signal<PrintSize>(PRINT_SIZES[4]);
 
+  lastPrinter = signal<PrinterInfo | null>(null);
+  quickPrinting = signal(false);
+  quickPrintStatus = signal<'idle' | 'success' | 'error'>('idle');
+  quickPrintError = '';
+
   transferColumns = ['transferDate', 'assignedToUserName', 'toLocationName', 'returnDate', 'status'];
   maintenanceColumns = ['type', 'scheduledDate', 'technicianName', 'cost', 'status'];
 
@@ -117,9 +125,12 @@ export class AssetDetailComponent implements OnInit {
     private assetService: AssetService,
     private transferService: TransferService,
     private maintenanceService: MaintenanceService,
+    private dialog: MatDialog,
+    private printerService: PrinterService,
   ) {}
 
   ngOnInit(): void {
+    this.lastPrinter.set(this.printerService.getLastPrinter());
     const id = +this.route.snapshot.paramMap.get('id')!;
     this.assetService.getById(id).subscribe((a) => {
       this.asset.set(a);
@@ -298,11 +309,59 @@ export class AssetDetailComponent implements OnInit {
     }
   }
 
-  async printBt(): Promise<void> {
+  openPrintDialog(): void {
     const a = this.asset();
-    if (a?.qrCode) {
-      await this.bt.printQr(a.qrCode, a.name, this.selectedPrintSize().mm);
-    }
+    if (!a) return;
+    const ref = this.dialog.open(PrintDialogComponent, {
+      data: { qrCode: a.qrCode, assetName: a.name, serialNumber: a.serialNumber },
+      width: '600px',
+      disableClose: false,
+    });
+    ref.afterClosed().subscribe(() => {
+      // refresh last printer in case user printed inside dialog
+      this.lastPrinter.set(this.printerService.getLastPrinter());
+    });
+  }
+
+  quickPrintZpl(): void {
+    const a = this.asset();
+    const printer = this.lastPrinter();
+    if (!a || !printer) return;
+
+    this.quickPrinting.set(true);
+    this.quickPrintStatus.set('idle');
+    this.quickPrintError = '';
+
+    this.printerService.getLabelConfig().subscribe({
+      next: (config) => {
+        this.printerService.print({
+          printerIp: printer.ip,
+          printerPort: printer.port,
+          qrCode: a.qrCode,
+          labelText: a.name,
+          serialText: a.serialNumber ?? '',
+          ...config,
+        }).subscribe({
+          next: () => {
+            this.quickPrinting.set(false);
+            this.quickPrintStatus.set('success');
+            setTimeout(() => this.quickPrintStatus.set('idle'), 2500);
+          },
+          error: (e) => {
+            this.quickPrinting.set(false);
+            this.quickPrintStatus.set('error');
+            this.quickPrintError = e.error || 'Eroare la printare';
+            setTimeout(() => this.quickPrintStatus.set('idle'), 4000);
+          },
+        });
+      },
+      error: () => {
+        this.quickPrinting.set(false);
+        this.quickPrintStatus.set('error');
+        this.quickPrintError = 'Nu s-au putut încărca setările';
+        setTimeout(() => this.quickPrintStatus.set('idle'), 4000);
+      },
+    });
   }
 
   statusLabel(s: string): string {

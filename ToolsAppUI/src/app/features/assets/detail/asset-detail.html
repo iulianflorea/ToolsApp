@@ -202,40 +202,29 @@
               </button>
             </div>
 
-            <!-- Bluetooth -->
-            <div class="bt-bar">
-              <ng-container *ngIf="bt.supported; else btNotSupported">
-                <ng-container *ngIf="!bt.connected()">
-                  <button mat-stroked-button (click)="bt.connect()">
-                    <mat-icon>bluetooth</mat-icon> Conectează imprimantă BT
-                  </button>
-                </ng-container>
-                <ng-container *ngIf="bt.connected()">
-                  <div class="bt-status">
-                    <mat-icon style="color:var(--blue)">bluetooth_connected</mat-icon>
-                    <span>{{ bt.deviceName() }}</span>
-                    <button mat-icon-button (click)="bt.disconnect()" matTooltip="Deconectează">
-                      <mat-icon>bluetooth_disabled</mat-icon>
-                    </button>
-                  </div>
-                  <button mat-raised-button color="accent" (click)="printBt()" [disabled]="bt.busy()">
-                    <mat-icon>{{ bt.busy() ? 'hourglass_empty' : 'print' }}</mat-icon>
-                    {{ bt.busy() ? 'Se trimite…' : 'Print BT' }}
-                  </button>
-                  <button mat-stroked-button (click)="bt.probeInfo()" [disabled]="bt.busy()">
-                    Probe Info
-                  </button>
-                </ng-container>
-                <p *ngIf="bt.error()" class="bt-error">{{ bt.error() }}</p>
-              </ng-container>
-              <ng-template #btNotSupported>
-                <p class="bt-unsupported">
-                  <mat-icon>bluetooth_disabled</mat-icon>
-                  Bluetooth nu e suportat în acest browser.<br>
-                  <small>Folosește <strong>Chrome</strong> sau <strong>Edge</strong> pe desktop/Android.</small>
-                </p>
-              </ng-template>
-            </div>
+            <button mat-stroked-button color="primary" (click)="openPrintDialog()" style="width:100%">
+              <mat-icon>local_printshop</mat-icon> Printează etichetă ZPL
+            </button>
+
+            <!-- Quick print (apare doar dacă există o imprimantă salvată) -->
+            <ng-container *ngIf="lastPrinter()">
+              <button mat-raised-button color="accent"
+                style="width:100%"
+                [disabled]="quickPrinting()"
+                (click)="quickPrintZpl()">
+                <mat-spinner *ngIf="quickPrinting()" diameter="16" style="display:inline-block;margin-right:6px;vertical-align:middle"></mat-spinner>
+                <mat-icon *ngIf="!quickPrinting()">bolt</mat-icon>
+                {{ quickPrinting() ? 'Se trimite…' : 'Print rapid — ' + lastPrinter()!.name }}
+              </button>
+              <div *ngIf="quickPrintStatus() === 'success'" class="qp-success">
+                <mat-icon style="font-size:16px;vertical-align:middle">check_circle</mat-icon>
+                Trimis cu succes!
+              </div>
+              <div *ngIf="quickPrintStatus() === 'error'" class="qp-error">
+                {{ quickPrintError }}
+              </div>
+            </ng-container>
+
           </mat-card-content>
         </mat-card>
       </div>

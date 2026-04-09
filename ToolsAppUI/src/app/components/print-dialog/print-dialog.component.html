@@ -1,0 +1,310 @@
+<div class="apple-dialog">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────────── -->
+  <div class="dialog-header">
+    <div class="header-icon">
+      <mat-icon>local_printshop</mat-icon>
+    </div>
+    <div class="header-text">
+      <h2 class="header-title">{{ 'print.dialogTitle' | translate }}</h2>
+      <p class="header-subtitle">{{ data.assetName }}</p>
+    </div>
+    <button class="close-btn" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ── Segmented control ────────────────────────────────────────────────────── -->
+  <div class="seg-wrap">
+    <div class="seg-control">
+      <button class="seg-btn" [class.active]="activeTab === 0" (click)="setTab(0)">
+        {{ 'print.tabConfig' | translate }}
+      </button>
+      <button class="seg-btn" [class.active]="activeTab === 1" (click)="setTab(1)">
+        {{ 'print.tabPrint' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Body ──────────────────────────────────────────────────────────────────── -->
+  <div class="dialog-body">
+
+    <!-- ──────────────────────────────────── TAB 0: Configurare ────────────────── -->
+    <ng-container *ngIf="activeTab === 0">
+
+      <!-- Preview -->
+      <div class="preview-wrap">
+        <app-label-preview
+          [config]="config"
+          [qrCode]="data.qrCode"
+          [labelText]="customLabelText"
+          [serialNumber]="data.serialNumber ?? ''">
+        </app-label-preview>
+        <span class="preview-dims">{{ config.labelWidthMm }}mm × {{ config.labelHeightMm }}mm</span>
+      </div>
+
+      <!-- Dimensiuni etichetă -->
+      <div class="form-section">
+        <p class="section-header">{{ 'print.secDimensions' | translate }}</p>
+        <div class="form-group">
+          <div class="form-row">
+            <span class="row-label">{{ 'print.width' | translate }}</span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.labelWidthMm" (ngModelChange)="onConfigChange()"
+                min="20" max="150">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="row-label">{{ 'print.height' | translate }}</span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.labelHeightMm" (ngModelChange)="onConfigChange()"
+                min="10" max="150">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cod QR -->
+      <div class="form-section">
+        <p class="section-header">{{ 'print.secQr' | translate }}</p>
+        <div class="form-group">
+          <div class="form-row">
+            <span class="row-label">{{ 'print.size' | translate }}</span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.qrSizePercent" (ngModelChange)="onConfigChange()"
+                min="10" max="100">
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="row-label">{{ 'print.offsetX' | translate }}</span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.qrOffsetXPercent" (ngModelChange)="onConfigChange()"
+                min="0" max="90">
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="row-label">{{ 'print.offsetY' | translate }}</span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.qrOffsetYPercent" (ngModelChange)="onConfigChange()"
+                min="0" max="90">
+              <span class="unit">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nume unealtă -->
+      <div class="form-section">
+        <p class="section-header">{{ 'print.secName' | translate }}</p>
+        <div class="form-group">
+          <div class="form-row">
+            <span class="row-label">{{ 'print.show' | translate }}</span>
+            <label class="ios-toggle">
+              <input type="checkbox" [(ngModel)]="config.showName" (ngModelChange)="onConfigChange()">
+              <span class="track"></span>
+            </label>
+          </div>
+          <ng-container *ngIf="config.showName">
+            <div class="form-row">
+              <span class="row-label">{{ 'print.text' | translate }}</span>
+              <input class="row-input row-input-text" type="text"
+                [(ngModel)]="customLabelText"
+                [placeholder]="'print.namePlaceholder' | translate">
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetX' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.nameOffsetXPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetY' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.nameOffsetYPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.fontSize' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.nameFontSize" (ngModelChange)="onConfigChange()"
+                  min="8" max="80">
+                <span class="unit">{{ 'print.dots' | translate }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- ID cod QR -->
+      <div class="form-section">
+        <p class="section-header">{{ 'print.secId' | translate }}</p>
+        <div class="form-group">
+          <div class="form-row">
+            <span class="row-label">
+              {{ 'print.show' | translate }}
+              <code class="id-chip">{{ data.qrCode }}</code>
+            </span>
+            <label class="ios-toggle">
+              <input type="checkbox" [(ngModel)]="config.showId" (ngModelChange)="onConfigChange()">
+              <span class="track"></span>
+            </label>
+          </div>
+          <ng-container *ngIf="config.showId">
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetX' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.idOffsetXPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetY' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.idOffsetYPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.fontSize' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.idFontSize" (ngModelChange)="onConfigChange()"
+                  min="6" max="60">
+                <span class="unit">{{ 'print.dots' | translate }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Număr de serie -->
+      <div class="form-section">
+        <p class="section-header">{{ 'print.secSerial' | translate }}</p>
+        <div class="form-group">
+          <div class="form-row">
+            <span class="row-label">
+              {{ 'print.show' | translate }}
+              <code class="id-chip">{{ data.serialNumber || '—' }}</code>
+            </span>
+            <label class="ios-toggle">
+              <input type="checkbox" [(ngModel)]="config.showSerial" (ngModelChange)="onConfigChange()">
+              <span class="track"></span>
+            </label>
+          </div>
+          <ng-container *ngIf="config.showSerial">
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetX' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.serialOffsetXPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.offsetY' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.serialOffsetYPercent" (ngModelChange)="onConfigChange()"
+                  min="0" max="95">
+                <span class="unit">%</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <span class="row-label">{{ 'print.fontSize' | translate }}</span>
+              <div class="row-right">
+                <input class="row-input" type="number"
+                  [(ngModel)]="config.serialFontSize" (ngModelChange)="onConfigChange()"
+                  min="6" max="60">
+                <span class="unit">{{ 'print.dots' | translate }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- ──────────────────────────────────── TAB 1: Printare ───────────────────── -->
+    <ng-container *ngIf="activeTab === 1">
+
+      <div *ngIf="loadingPrinters" class="loading-state">
+        <div class="css-spinner"></div>
+        <span>{{ 'print.searching' | translate }}</span>
+      </div>
+
+      <ng-container *ngIf="!loadingPrinters">
+
+        <div *ngIf="printers.length === 0" class="empty-printers">
+          <mat-icon>wifi_find</mat-icon>
+          <p>{{ 'print.noPrinters' | translate }}</p>
+          <button class="link-btn" (click)="loadPrinters()">{{ 'print.tryAgain' | translate }}</button>
+        </div>
+
+        <div *ngIf="printers.length > 0" class="form-group printer-list">
+          <div class="printer-row"
+            *ngFor="let p of printers"
+            [class.selected]="selectedPrinter === p"
+            (click)="selectedPrinter = p">
+            <div class="printer-icon-wrap">
+              <mat-icon>print</mat-icon>
+            </div>
+            <div class="printer-info">
+              <span class="printer-name">{{ p.name }}</span>
+              <span class="printer-addr">{{ p.ip }}:{{ p.port }}</span>
+            </div>
+            <mat-icon class="check-icon" *ngIf="selectedPrinter === p">check</mat-icon>
+          </div>
+        </div>
+
+        <div class="scan-btns">
+          <button class="link-btn" (click)="loadPrinters()">{{ 'print.refresh' | translate }}</button>
+          <button class="link-btn danger" (click)="rescanPrinters()">{{ 'print.rescan' | translate }}</button>
+        </div>
+
+      </ng-container>
+
+      <p *ngIf="printSuccess" class="msg-success">{{ 'print.success' | translate }}</p>
+      <p *ngIf="printError"   class="msg-error">{{ printError }}</p>
+
+    </ng-container>
+
+  </div>
+
+  <!-- ── Actions ─────────────────────────────────────────────────────────────── -->
+  <div class="dialog-actions">
+    <button class="action-btn ghost" (click)="close()">{{ 'print.close' | translate }}</button>
+
+    <button class="action-btn primary" *ngIf="activeTab === 0" (click)="setTab(1)">
+      {{ 'print.continue' | translate }}
+    </button>
+
+    <button class="action-btn primary" *ngIf="activeTab === 1"
+      [disabled]="!selectedPrinter || printing"
+      (click)="print()">
+      <span *ngIf="printing" class="btn-spinner"></span>
+      {{ 'print.print' | translate }}
+    </button>
+  </div>
+
+</div>
