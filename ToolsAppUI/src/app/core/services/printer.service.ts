@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { LabelConfig, PrinterInfo, PrintRequest } from '../models/printer.models';
+import { Observable, of } from 'rxjs';
+import { DEFAULT_LABEL_CONFIG, LabelConfig, PrinterInfo, PrintRequest } from '../models/printer.models';
 
 @Injectable({ providedIn: 'root' })
 export class PrinterService {
   private api = '/api/printers';
   private readonly LAST_PRINTER_KEY = 'tt-last-printer';
+  private readonly LABEL_CONFIG_KEY = 'tt-label-config';
 
   constructor(private http: HttpClient) {}
 
@@ -19,11 +20,16 @@ export class PrinterService {
   }
 
   getLabelConfig(): Observable<LabelConfig> {
-    return this.http.get<LabelConfig>(`${this.api}/label-config`);
+    const stored = localStorage.getItem(this.LABEL_CONFIG_KEY);
+    const config: LabelConfig = stored
+      ? { ...DEFAULT_LABEL_CONFIG, ...JSON.parse(stored) }
+      : { ...DEFAULT_LABEL_CONFIG };
+    return of(config);
   }
 
   saveLabelConfig(config: LabelConfig): Observable<LabelConfig> {
-    return this.http.post<LabelConfig>(`${this.api}/label-config`, config);
+    localStorage.setItem(this.LABEL_CONFIG_KEY, JSON.stringify(config));
+    return of(config);
   }
 
   print(request: PrintRequest): Observable<string> {

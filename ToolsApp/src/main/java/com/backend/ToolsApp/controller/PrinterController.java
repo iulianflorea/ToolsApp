@@ -1,9 +1,7 @@
 package com.backend.ToolsApp.controller;
 
-import com.backend.ToolsApp.dto.LabelConfigDto;
 import com.backend.ToolsApp.dto.PrintRequestDto;
 import com.backend.ToolsApp.dto.PrinterInfoDto;
-import com.backend.ToolsApp.service.LabelConfigService;
 import com.backend.ToolsApp.service.PrinterDiscoveryService;
 import com.backend.ToolsApp.service.ZplPrintService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +20,6 @@ public class PrinterController {
 
     @Autowired
     private ZplPrintService printService;
-
-    @Autowired
-    private LabelConfigService labelConfigService;
 
     @GetMapping
     public List<PrinterInfoDto> getPrinters() {
@@ -45,15 +40,5 @@ public class PrinterController {
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Eroare la printare: " + e.getMessage());
         }
-    }
-
-    @GetMapping("/label-config")
-    public LabelConfigDto getLabelConfig() {
-        return labelConfigService.getConfig();
-    }
-
-    @PostMapping("/label-config")
-    public LabelConfigDto saveLabelConfig(@RequestBody LabelConfigDto config) {
-        return labelConfigService.saveConfig(config);
     }
 }

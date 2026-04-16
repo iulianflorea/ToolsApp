@@ -188,22 +188,8 @@
             <canvas #qrCanvas></canvas>
             <code class="qr-code-text">{{ asset()!.qrCode }}</code>
 
-            <div class="print-bar">
-              <mat-form-field appearance="outline" class="size-picker">
-                <mat-label>Dimensiune</mat-label>
-                <mat-select [value]="selectedPrintSize()" (selectionChange)="selectedPrintSize.set($event.value)">
-                  @for (s of printSizes; track s.mm) {
-                    <mat-option [value]="s">{{ s.label }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <button mat-raised-button color="primary" (click)="printQr()">
-                <mat-icon>print</mat-icon> Printează
-              </button>
-            </div>
-
             <button mat-stroked-button color="primary" (click)="openPrintDialog()" style="width:100%">
-              <mat-icon>local_printshop</mat-icon> Printează etichetă ZPL
+              <mat-icon>local_printshop</mat-icon> Configureaza eticheta
             </button>
 
             <!-- Quick print (apare doar dacă există o imprimantă salvată) -->
@@ -214,7 +200,7 @@
                 (click)="quickPrintZpl()">
                 <mat-spinner *ngIf="quickPrinting()" diameter="16" style="display:inline-block;margin-right:6px;vertical-align:middle"></mat-spinner>
                 <mat-icon *ngIf="!quickPrinting()">bolt</mat-icon>
-                {{ quickPrinting() ? 'Se trimite…' : 'Print rapid — ' + lastPrinter()!.name }}
+                {{ quickPrinting() ? 'Se trimite…' : 'Print — ' + lastPrinter()!.name }}
               </button>
               <div *ngIf="quickPrintStatus() === 'success'" class="qp-success">
                 <mat-icon style="font-size:16px;vertical-align:middle">check_circle</mat-icon>

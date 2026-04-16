@@ -50,11 +50,11 @@ export const DEFAULT_LABEL_CONFIG: LabelConfig = {
   showId: false,
   idOffsetXPercent: 38,
   idOffsetYPercent: 55,
-  idFontSize: 16,
+  idFontSize: 20,
   showSerial: false,
   serialOffsetXPercent: 38,
   serialOffsetYPercent: 70,
-  serialFontSize: 16,
+  serialFontSize: 20,
   gapMm: 0,
 };
 

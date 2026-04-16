@@ -26,7 +26,6 @@ import { LocationService } from '../../../core/services/location.service';
 import { UserService } from '../../../core/services/user.service';
 import { Asset, Transfer, MaintenanceRecord, MaintenanceType, Location, AppUser } from '../../../core/models/models';
 import { ScreenService } from '../../../core/services/screen.service';
-import { QrPrintService, PRINT_SIZES, PrintSize } from '../../../core/services/qr-print.service';
 import { PrintDialogComponent } from '../../../components/print-dialog/print-dialog.component';
 import { PrinterService } from '../../../core/services/printer.service';
 import { PrinterInfo } from '../../../core/models/printer.models';
@@ -64,7 +63,6 @@ export class AssetDetailComponent implements OnInit {
   @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
   readonly screen = inject(ScreenService);
-  private readonly qrPrint = inject(QrPrintService);
   private readonly fb = inject(FormBuilder);
   private readonly locationService = inject(LocationService);
   private readonly userService = inject(UserService);
@@ -107,9 +105,6 @@ export class AssetDetailComponent implements OnInit {
     cost: [null as number | null],
     notes: [''],
   });
-
-  printSizes = PRINT_SIZES;
-  selectedPrintSize = signal<PrintSize>(PRINT_SIZES[4]);
 
   lastPrinter = signal<PrinterInfo | null>(null);
   quickPrinting = signal(false);
@@ -300,13 +295,6 @@ export class AssetDetailComponent implements OnInit {
     this.assetService.delete(this.asset()!.id).subscribe(() => {
       this.router.navigate(['/assets']);
     });
-  }
-
-  printQr(): void {
-    const a = this.asset();
-    if (a?.qrCode) {
-      this.qrPrint.print(a.qrCode, a.name, this.selectedPrintSize().mm);
-    }
   }
 
   openPrintDialog(): void {
