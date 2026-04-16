@@ -65,6 +65,18 @@
               <span class="unit">mm</span>
             </div>
           </div>
+          <div class="form-row">
+            <span class="row-label">
+              {{ 'print.gap' | translate }}
+              <span class="row-hint">{{ 'print.gapHint' | translate }}</span>
+            </span>
+            <div class="row-right">
+              <input class="row-input" type="number"
+                [(ngModel)]="config.gapMm" (ngModelChange)="onConfigChange()"
+                min="0" max="20">
+              <span class="unit">mm</span>
+            </div>
+          </div>
         </div>
       </div>
 

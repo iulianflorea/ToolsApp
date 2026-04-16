@@ -190,6 +190,12 @@
   gap: 8px;
 }
 
+.row-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
 .row-right {
   display: flex;
   align-items: center;

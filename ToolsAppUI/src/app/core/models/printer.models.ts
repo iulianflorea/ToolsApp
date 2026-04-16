@@ -32,6 +32,9 @@ export interface LabelConfig {
   serialOffsetXPercent: number;
   serialOffsetYPercent: number;
   serialFontSize: number;
+
+  // Gap între etichete (0 = folosește calibrarea stocată în imprimantă)
+  gapMm: number;
 }
 
 export const DEFAULT_LABEL_CONFIG: LabelConfig = {
@@ -52,6 +55,7 @@ export const DEFAULT_LABEL_CONFIG: LabelConfig = {
   serialOffsetXPercent: 38,
   serialOffsetYPercent: 70,
   serialFontSize: 16,
+  gapMm: 0,
 };
 
 export interface PrintRequest {
@@ -77,4 +81,5 @@ export interface PrintRequest {
   serialOffsetXPercent: number;
   serialOffsetYPercent: number;
   serialFontSize: number;
+  gapMm: number;
 }

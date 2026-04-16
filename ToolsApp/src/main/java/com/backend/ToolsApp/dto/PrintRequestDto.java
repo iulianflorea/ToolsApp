@@ -96,4 +96,8 @@ public class PrintRequestDto {
 
     public int getSerialFontSize() { return serialFontSize; }
     public void setSerialFontSize(int v) { this.serialFontSize = v; }
+
+    private int gapMm;
+    public int getGapMm() { return gapMm; }
+    public void setGapMm(int v) { this.gapMm = v; }
 }

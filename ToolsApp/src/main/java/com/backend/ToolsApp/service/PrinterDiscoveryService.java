@@ -1,10 +1,10 @@
 package com.backend.ToolsApp.service;
 
 import com.backend.ToolsApp.dto.PrinterInfoDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceInfo;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
@@ -12,6 +12,8 @@ import java.util.concurrent.*;
 
 @Service
 public class PrinterDiscoveryService {
+
+    private static final Logger log = LoggerFactory.getLogger(PrinterDiscoveryService.class);
 
     private static final int ZPL_PORT = 9100;
     private static final int SCAN_TIMEOUT_MS = 500;
@@ -26,6 +28,7 @@ public class PrinterDiscoveryService {
                 .toList();
 
             if (!stillAlive.isEmpty()) {
+                log.info("Returning {} printer(s) from cache", stillAlive.size());
                 return stillAlive.stream()
                     .map(p -> new PrinterInfoDto(p.getName(), p.getIp(), p.getPort(), "cache"))
                     .toList();
@@ -33,17 +36,15 @@ public class PrinterDiscoveryService {
             cachedPrinters.clear();
         }
 
-        List<PrinterInfoDto> found = discoverViaMdns();
-        if (found.isEmpty()) {
-            found = discoverViaScan();
-        }
-
+        List<PrinterInfoDto> found = discoverViaScan();
         cachedPrinters = new ArrayList<>(found);
+        log.info("Discovery complete — found {} printer(s)", found.size());
         return found;
     }
 
     public void clearCache() {
         cachedPrinters.clear();
+        log.info("Printer cache cleared");
     }
 
     private boolean isReachable(PrinterInfoDto printer) {
@@ -58,57 +59,59 @@ public class PrinterDiscoveryService {
         }
     }
 
-    private List<PrinterInfoDto> discoverViaMdns() {
-        List<PrinterInfoDto> found = new ArrayList<>();
+    private List<PrinterInfoDto> discoverViaScan() {
+        List<PrinterInfoDto> found = Collections.synchronizedList(new ArrayList<>());
+        ExecutorService executor = Executors.newFixedThreadPool(64);
+
         try {
-            JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
-            String[] types = {"_pdl-datastream._tcp.local.", "_ipp._tcp.local.", "_printer._tcp.local."};
-            for (String type : types) {
-                ServiceInfo[] services = jmdns.list(type, 3000);
-                for (ServiceInfo info : services) {
-                    String[] addresses = info.getHostAddresses();
-                    if (addresses.length > 0) {
-                        found.add(new PrinterInfoDto(info.getName(), addresses[0], info.getPort(), "mdns"));
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            Set<String> subnets = new LinkedHashSet<>();
+
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface ni = interfaces.nextElement();
+                if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) continue;
+                for (InterfaceAddress addr : ni.getInterfaceAddresses()) {
+                    InetAddress ia = addr.getAddress();
+                    if (ia instanceof Inet4Address && !ia.isLoopbackAddress()) {
+                        String ip = ia.getHostAddress();
+                        String subnet = ip.substring(0, ip.lastIndexOf('.') + 1);
+                        subnets.add(subnet);
                     }
                 }
             }
-            jmdns.close();
-        } catch (IOException e) {
-            // mDNS failed, fallback to scan
-        }
-        return found;
-    }
 
-    private List<PrinterInfoDto> discoverViaScan() {
-        List<PrinterInfoDto> found = new CopyOnWriteArrayList<>();
-        try {
-            String localIp = InetAddress.getLocalHost().getHostAddress();
-            String subnet = localIp.substring(0, localIp.lastIndexOf('.') + 1);
-
-            ExecutorService executor = Executors.newFixedThreadPool(50);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-            for (int i = 1; i <= 254; i++) {
-                final String ip = subnet + i;
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try (Socket socket = new Socket()) {
-                        socket.connect(new InetSocketAddress(ip, ZPL_PORT), SCAN_TIMEOUT_MS);
-                        String hostname;
-                        try {
-                            hostname = InetAddress.getByName(ip).getHostName();
-                        } catch (Exception e) {
-                            hostname = "Printer @ " + ip;
-                        }
-                        found.add(new PrinterInfoDto(hostname, ip, ZPL_PORT, "scan"));
-                    } catch (IOException ignored) {}
-                }, executor));
+            if (subnets.isEmpty()) {
+                log.warn("No active IPv4 network interfaces found — cannot scan");
+                return found;
             }
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(15, TimeUnit.SECONDS);
+            log.info("Scanning subnets: {}", subnets);
+
+            for (String subnet : subnets) {
+                for (int i = 1; i <= 254; i++) {
+                    final String ip = subnet + i;
+                    executor.submit(() -> {
+                        try (Socket socket = new Socket()) {
+                            socket.connect(new InetSocketAddress(ip, ZPL_PORT), SCAN_TIMEOUT_MS);
+                            log.info("Found ZPL printer at {}:{}", ip, ZPL_PORT);
+                            found.add(new PrinterInfoDto("Imprimantă ZPL (" + ip + ")", ip, ZPL_PORT, "scan"));
+                        } catch (IOException ignored) {}
+                    });
+                }
+            }
+
             executor.shutdown();
+            boolean finished = executor.awaitTermination(15, TimeUnit.SECONDS);
+            if (!finished) {
+                log.warn("Scan did not finish within 15s — returning partial results");
+            }
+
         } catch (Exception e) {
-            // scan failed
+            log.error("Scan failed: {}", e.getMessage(), e);
+        } finally {
+            executor.shutdownNow();
         }
+
         return found;
     }
 }

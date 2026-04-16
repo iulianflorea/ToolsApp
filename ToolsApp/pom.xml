@@ -90,6 +90,13 @@
             <version>${mapstruct.version}</version>
         </dependency>
 
+        <!-- ZXing – QR code generation -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
         <!-- JmDNS – printer discovery -->
         <dependency>
             <groupId>org.jmdns</groupId>

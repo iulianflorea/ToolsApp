@@ -23,6 +23,8 @@ public class LabelConfigDto {
     private int serialOffsetYPercent;
     private int serialFontSize;
 
+    private int gapMm; // 0 = foloseste calibrarea stocata in imprimanta
+
     public LabelConfigDto() {
         this.labelWidthMm = 50;
         this.labelHeightMm = 30;
@@ -93,4 +95,7 @@ public class LabelConfigDto {
 
     public int getSerialFontSize() { return serialFontSize; }
     public void setSerialFontSize(int v) { this.serialFontSize = v; }
+
+    public int getGapMm() { return gapMm; }
+    public void setGapMm(int v) { this.gapMm = v; }
 }
