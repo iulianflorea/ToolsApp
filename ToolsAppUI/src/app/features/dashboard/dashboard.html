@@ -10,7 +10,7 @@
   <div class="dash-search-wrap">
     <mat-form-field appearance="outline" class="dash-search-field">
       <mat-label>{{ 'dash.search' | translate }}</mat-label>
-      <input matInput [formControl]="searchCtrl" [matAutocomplete]="autoSearch"
+      <input matInput #searchInput [formControl]="searchCtrl" [matAutocomplete]="autoSearch"
              [placeholder]="'dash.search' | translate"
              (keydown.enter)="onSearchEnter()" />
       <mat-icon matSuffix>search</mat-icon>

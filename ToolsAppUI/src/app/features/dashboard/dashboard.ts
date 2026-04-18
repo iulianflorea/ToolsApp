@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -64,6 +64,8 @@ export class DashboardComponent implements OnInit {
   activeCategoryRow = signal<string | null>(null);
   categoryAssets = signal<Asset[]>([]);
   loadingCategory = signal(false);
+
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   // Asset search
   searchCtrl = new FormControl('');
@@ -163,7 +165,12 @@ export class DashboardComponent implements OnInit {
 
     this.assetService.getByQrCode(query).subscribe({
       next: (asset) => this.navigateToAsset(asset),
-      error: () => this.searchError.set('Unealta nu a fost găsită pentru seria sau codul introdus.'),
+      error: () => {
+        this.searchError.set('Unealta nu a fost găsită pentru seria sau codul introdus.');
+        this.searchCtrl.setValue('', { emitEvent: false });
+        this.searchResults.set([]);
+        setTimeout(() => this.searchInput.nativeElement.focus(), 0);
+      },
     });
   }
 
