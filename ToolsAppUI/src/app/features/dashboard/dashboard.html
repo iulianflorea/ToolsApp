@@ -11,7 +11,8 @@
     <mat-form-field appearance="outline" class="dash-search-field">
       <mat-label>{{ 'dash.search' | translate }}</mat-label>
       <input matInput [formControl]="searchCtrl" [matAutocomplete]="autoSearch"
-             [placeholder]="'dash.search' | translate" />
+             [placeholder]="'dash.search' | translate"
+             (keydown.enter)="onSearchEnter()" />
       <mat-icon matSuffix>search</mat-icon>
       <button matSuffix mat-icon-button type="button"
               (click)="toggleDashScanner()"
@@ -34,6 +35,7 @@
     <div *ngIf="scanningDash()" class="dash-scanner-panel">
       <zxing-scanner [enable]="scanningDash()" (scanSuccess)="onDashScan($event)" (scanError)="onScanError()"></zxing-scanner>
     </div>
+    <p *ngIf="searchError()" class="scan-error">{{ searchError() }}</p>
     <p *ngIf="scanError()" class="scan-error">{{ scanError() }}</p>
   </div>
 

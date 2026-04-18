@@ -68,6 +68,7 @@ export class DashboardComponent implements OnInit {
   // Asset search
   searchCtrl = new FormControl('');
   searchResults = signal<Asset[]>([]);
+  searchError = signal('');
   scanningDash = signal(false);
   scanError = signal('');
 
@@ -143,8 +144,33 @@ export class DashboardComponent implements OnInit {
 
   onAssetSelected(event: MatAutocompleteSelectedEvent): void {
     const asset = event.option.value as Asset;
+    this.navigateToAsset(asset);
+  }
+
+  onSearchEnter(): void {
+    const query = (this.searchCtrl.value ?? '').trim();
+    if (!query) return;
+
+    this.searchError.set('');
+    const results = this.searchResults();
+
+    const exactSerial = results.find(
+      (a) => a.serialNumber?.toLowerCase() === query.toLowerCase()
+    );
+    if (exactSerial) { this.navigateToAsset(exactSerial); return; }
+
+    if (results.length === 1) { this.navigateToAsset(results[0]); return; }
+
+    this.assetService.getByQrCode(query).subscribe({
+      next: (asset) => this.navigateToAsset(asset),
+      error: () => this.searchError.set('Unealta nu a fost găsită pentru seria sau codul introdus.'),
+    });
+  }
+
+  private navigateToAsset(asset: Asset): void {
     this.searchCtrl.setValue('', { emitEvent: false });
     this.searchResults.set([]);
+    this.searchError.set('');
     this.router.navigate(['/assets', asset.id]);
   }
 
